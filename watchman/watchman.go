@@ -9,7 +9,7 @@ import (
 
 var logger = logging.GetInstance().Logger.Sugar()
 
-func Start(address, dbUrl, inboundTag string, nodeId int64, port uint16) {
+func Start(address, inboundTag, dbUrl string, nodeId int64, port uint16) {
 	logger.Debug("watchman start")
 	vc, err := vclient.Connect(address, time.Second*6)
 	if err != nil {

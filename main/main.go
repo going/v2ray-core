@@ -14,11 +14,13 @@ import (
 	"runtime"
 	"strings"
 	"syscall"
+	"time"
 
 	"v2ray.com/core"
 	"v2ray.com/core/common/cmdarg"
 	"v2ray.com/core/common/platform"
 	_ "v2ray.com/core/main/distro/all"
+	"v2ray.com/core/watchman"
 )
 
 var (
@@ -159,6 +161,14 @@ func main() {
 		fmt.Println("Failed to start", err)
 		os.Exit(-1)
 	}
+
+	time.Sleep(time.Second)
+
+	go func() {
+		watchman.Start("127.0.0.1:4321", "v2-proxy", "", 1, 10086)
+		fmt.Println("big brother is watching now.")
+	}()
+
 	defer server.Close()
 
 	// Explicitly triggering GC to remove garbage from config loading.
