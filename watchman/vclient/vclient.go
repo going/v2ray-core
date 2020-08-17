@@ -74,24 +74,24 @@ func (v *VClient) InitServices(inboundTag string) error {
 	return nil
 }
 
-func (v *VClient) Startup(dbUrl, inboundTag string, nodeId int64, port uint16) error {
+func (v *VClient) Startup(dbUrl, inboundTag string, nodeId int64) error {
 	database.Connect(context.TODO(), v.Logger, &proto.DBConfig{
 		Master:  dbUrl,
 		MaxIdle: 10,
 		MaxOpen: 10,
 	})
 
-	if inboundTag != "" && inboundTag != DefaultInboundTag {
-		if err := v.Manager.RemoveInbound(); err != nil {
-			v.Logger.Error(err.Error())
-		}
+	// if inboundTag != "" && inboundTag != DefaultInboundTag {
+	// 	if err := v.Manager.RemoveInbound(); err != nil {
+	// 		v.Logger.Error(err.Error())
+	// 	}
 
-		if err := v.AddMainInbound(port); err != nil {
-			v.Logger.Fatal(err.Error())
-		}
+	// 	if err := v.AddMainInbound(); err != nil {
+	// 		v.Logger.Fatal(err.Error())
+	// 	}
 
-		time.Sleep(time.Second)
-	}
+	// 	time.Sleep(time.Second)
+	// }
 
 	if err := v.Sync(nodeId); err != nil {
 		v.Logger.Error(err.Error())

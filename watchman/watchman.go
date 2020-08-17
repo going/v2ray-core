@@ -9,7 +9,7 @@ import (
 
 var logger = logging.GetInstance().Logger.Sugar()
 
-func Start(address, inboundTag, dbUrl string, nodeId int64, port uint16) {
+func Start(address, inboundTag, dbUrl string, nodeId int64) {
 	logger.Debug("watchman start")
 	vc, err := vclient.Connect(address, time.Second*6)
 	if err != nil {
@@ -20,7 +20,7 @@ func Start(address, inboundTag, dbUrl string, nodeId int64, port uint16) {
 		logger.Fatal(err.Error())
 	}
 	logger.Debug("watchman services start")
-	if err := vc.Startup(dbUrl, inboundTag, nodeId, port); err != nil {
+	if err := vc.Startup(dbUrl, inboundTag, nodeId); err != nil {
 		logger.Fatal(err.Error())
 	}
 }

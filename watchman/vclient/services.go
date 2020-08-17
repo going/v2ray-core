@@ -138,7 +138,7 @@ func (h *HandlerServiceClient) AddVmessInbound(port uint16, address string, stre
 				User: []*protocol.User{
 					{
 						Level: 0,
-						Email: "admin@xxx.com",
+						Email: "admin@tian.network",
 						Account: serial.ToTypedMessage(&vmess.Account{
 							Id:      protocol.NewID(uuid.New()).String(),
 							AlterId: 2,
