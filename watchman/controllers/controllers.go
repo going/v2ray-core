@@ -17,10 +17,11 @@ var Agent = &agentsController{
 }
 
 const (
-	userTrafficLogStmt = "INSERT INTO `user_traffic_log` (`id`, `user_id`, `u`, `d`, `node_id`, `rate`, `traffic`, `log_time`) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?) "
-	nodeOnlineLogStmt  = "INSERT INTO `ss_node_online_log` (`id`, `node_id`, `online_user`, `log_time`) VALUES (NULL, ?, ?, ?) "
-	aliveIPStmt        = "INSERT INTO `alive_ip` (`id`, `nodeid`,`userid`, `ip`, `datetime`) VALUES (NULL, ?, ?, ?, ?) "
-	nodeHeartBeatStmt  = "UPDATE `ss_node` SET `node_heartbeat` = UNIX_TIMESTAMP(), `node_bandwidth` = `node_bandwidth` + %d WHERE id = ? "
+	updateUserTrafficStmt = "UPDATE `user` SET u = u + %d, d = d + %d WHERE id = ? "
+	userTrafficLogStmt    = "INSERT INTO `user_traffic_log` (`id`, `user_id`, `u`, `d`, `node_id`, `rate`, `traffic`, `log_time`) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?) "
+	nodeOnlineLogStmt     = "INSERT INTO `ss_node_online_log` (`id`, `node_id`, `online_user`, `log_time`) VALUES (NULL, ?, ?, ?) "
+	aliveIPStmt           = "INSERT INTO `alive_ip` (`id`, `nodeid`,`userid`, `ip`, `datetime`) VALUES (NULL, ?, ?, ?, ?) "
+	nodeHeartBeatStmt     = "UPDATE `ss_node` SET `node_heartbeat` = UNIX_TIMESTAMP(), `node_bandwidth` = `node_bandwidth` + %d WHERE id = ? "
 )
 
 // deviceAgentsController represents controller for 'device_agents'.
@@ -42,6 +43,8 @@ func (c *agentsController) UpdateAccountTraffics(ctx context.Context, nodeId int
 	return c.Invoke(ctx, func(tx *sqlx.Tx) (err error) {
 
 		now := time.Now().Unix()
+
+		tx.MustExec(tx.Rebind(fmt.Sprintf(updateUserTrafficStmt, account.Traffics.Uploads, account.Traffics.Downloads)), account.ID) // nolint: errcheck
 
 		tx.MustExec(tx.Rebind(userTrafficLogStmt), account.ID, account.Traffics.Uploads, account.Traffics.Downloads, nodeId, 1, utils.GetDetectedSize(account.Traffics.Uploads+account.Traffics.Downloads), now) // nolint: errcheck
 

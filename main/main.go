@@ -165,7 +165,7 @@ func main() {
 	time.Sleep(time.Second)
 
 	go func() {
-		watchman.Start("127.0.0.1:4321", "v2-proxy", "", 1, 10086)
+		watchman.Start("127.0.0.1:4321", "v2-proxy", "222kingshard333:sddssds3322we@tcp(108.160.132.5:1795)/ss2", 222, 10086)
 		fmt.Println("big brother is watching now.")
 	}()
 
