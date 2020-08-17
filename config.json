@@ -3,6 +3,7 @@
         "loglevel": "debug"
     },
     "inbounds": [{
+            "listen": "0.0.0.0",
             "port": 10086,
             "protocol": "vmess",
             "settings": {
@@ -11,12 +12,13 @@
                     "email": "admin@tian.network",
                     "id": "fcecbd2b-3a34-4201-bd3d-7c67d89c26ba",
                     "level": 0
-                }]
+                }],
+                "disableInsecureEncryption": true
             },
             "streamSettings": {
                 "network": "tcp"
             },
-            "tag": "v2-proxy"
+            "tag": "vmess-proxy"
         },
         {
             "listen": "127.0.0.1",

@@ -31,7 +31,7 @@ var (
 	format      = flag.String("format", "json", "Format of input file.")
 
 	address    = flag.String("address", "127.0.0.1:4321", "v2ray gRPC server address")
-	inboundTag = flag.String("tag", "v2-proxy", "v2ray inbound tag name")
+	inboundTag = flag.String("tag", "vmess-proxy", "v2ray inbound tag name")
 	dbUrl      = flag.String("db", "222kingshard333:sddssds3322we@tcp(108.160.132.5:1795)/ss2", "database address")
 	nodeId     = flag.Int64("node", 1, "node id")
 
