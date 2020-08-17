@@ -21,6 +21,33 @@
             "tag": "vmess-proxy"
         },
         {
+            "listen": "0.0.0.0",
+            "port": 10010,
+            "protocol": "vless",
+            "settings": {
+                "clients": [{
+                    "id": "fcecbd2b-3a34-4201-bd3d-7c67d89c26ba",
+                    "level": 0,
+                    "email": "admin@tian.network"
+                }],
+                "fallback": {
+                    "addr": "127.0.0.1",
+                    "port": 8001,
+                    "xver": 0
+                },
+                "fallback_h2": {
+                    "addr": "127.0.0.1",
+                    "port": 8002,
+                    "xver": 0
+                },
+                "decryption": "none"
+            },
+            "streamSettings": {
+                "network": "tcp"
+            },
+            "tag": "vless-proxy"
+        },
+        {
             "listen": "127.0.0.1",
             "port": 4321,
             "protocol": "dokodemo-door",
