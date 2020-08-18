@@ -163,24 +163,24 @@ func (v *VClient) syncAccounts() {
 
 	for i := range addedUsers {
 		user := addedUsers[i]
-		v.Logger.Info("新增用户", zap.String("email", user.Email), zap.String("uuid", user.UUID))
 		if v.VmessManager == nil && v.VmessInboundTag != "" {
 			if err := v.VmessManager.AddUser(user); err != nil {
 				v.Logger.Error(err.Error())
 			}
+			v.Logger.Info("新增Vmess用户", zap.String("email", user.Email), zap.String("uuid", user.UUID))
 		}
 
 		if v.VlessManager == nil && v.VlessInboundTag != "" {
 			if err := v.VlessManager.AddUser(user); err != nil {
 				v.Logger.Error(err.Error())
 			}
+			v.Logger.Info("新增Vless用户", zap.String("email", user.Email), zap.String("uuid", user.UUID))
 		}
 
 	}
 
 	for i := range modifiedUsers {
 		user := modifiedUsers[i]
-		v.Logger.Info("修改用户", zap.String("email", user.Email), zap.String("uuid", user.UUID))
 		if v.VmessManager == nil && v.VmessInboundTag != "" {
 			if err := v.VmessManager.DelUser(user.Email); err != nil {
 				v.Logger.Error(err.Error())
@@ -191,35 +191,40 @@ func (v *VClient) syncAccounts() {
 			if err := v.VlessManager.DelUser(user.Email); err != nil {
 				v.Logger.Error(err.Error())
 			}
+
 		}
 
 		if v.VmessManager == nil && v.VmessInboundTag != "" {
 			if err := v.VmessManager.AddUser(user); err != nil {
 				v.Logger.Error(err.Error())
 			}
+			v.Logger.Info("修改Vmess用户", zap.String("email", user.Email), zap.String("uuid", user.UUID))
 		}
 
 		if v.VlessManager == nil && v.VlessInboundTag != "" {
 			if err := v.VlessManager.AddUser(user); err != nil {
 				v.Logger.Error(err.Error())
 			}
+			v.Logger.Info("修改Vless用户", zap.String("email", user.Email), zap.String("uuid", user.UUID))
 		}
 
 	}
 
 	for i := range removedUsers {
 		ru := removedUsers[i]
-		v.Logger.Info("删除用户", zap.String("email", ru.Email), zap.String("uuid", ru.UUID))
+
 		if v.VmessManager == nil && v.VmessInboundTag != "" {
 			if err := v.VmessManager.DelUser(ru.Email); err != nil {
 				v.Logger.Error(err.Error())
 			}
+			v.Logger.Info("删除Vmess用户", zap.String("email", ru.Email), zap.String("uuid", ru.UUID))
 		}
 
 		if v.VlessManager == nil && v.VlessInboundTag != "" {
 			if err := v.VlessManager.DelUser(ru.Email); err != nil {
 				v.Logger.Error(err.Error())
 			}
+			v.Logger.Info("删除Vless用户", zap.String("email", ru.Email), zap.String("uuid", ru.UUID))
 		}
 
 	}
