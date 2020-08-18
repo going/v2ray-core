@@ -163,14 +163,14 @@ func (v *VClient) syncAccounts() {
 
 	for i := range addedUsers {
 		user := addedUsers[i]
-		if v.VmessManager == nil && v.VmessInboundTag != "" {
+		if v.VmessManager != nil {
 			if err := v.VmessManager.AddUser(user); err != nil {
 				v.Logger.Error(err.Error())
 			}
 			v.Logger.Info("新增Vmess用户", zap.String("email", user.Email), zap.String("uuid", user.UUID))
 		}
 
-		if v.VlessManager == nil && v.VlessInboundTag != "" {
+		if v.VlessManager != nil {
 			if err := v.VlessManager.AddUser(user); err != nil {
 				v.Logger.Error(err.Error())
 			}
@@ -181,27 +181,27 @@ func (v *VClient) syncAccounts() {
 
 	for i := range modifiedUsers {
 		user := modifiedUsers[i]
-		if v.VmessManager == nil && v.VmessInboundTag != "" {
+		if v.VmessManager != nil {
 			if err := v.VmessManager.DelUser(user.Email); err != nil {
 				v.Logger.Error(err.Error())
 			}
 		}
 
-		if v.VlessManager == nil && v.VlessInboundTag != "" {
+		if v.VlessManager != nil {
 			if err := v.VlessManager.DelUser(user.Email); err != nil {
 				v.Logger.Error(err.Error())
 			}
 
 		}
 
-		if v.VmessManager == nil && v.VmessInboundTag != "" {
+		if v.VmessManager != nil {
 			if err := v.VmessManager.AddUser(user); err != nil {
 				v.Logger.Error(err.Error())
 			}
 			v.Logger.Info("修改Vmess用户", zap.String("email", user.Email), zap.String("uuid", user.UUID))
 		}
 
-		if v.VlessManager == nil && v.VlessInboundTag != "" {
+		if v.VlessManager != nil {
 			if err := v.VlessManager.AddUser(user); err != nil {
 				v.Logger.Error(err.Error())
 			}
@@ -213,14 +213,14 @@ func (v *VClient) syncAccounts() {
 	for i := range removedUsers {
 		ru := removedUsers[i]
 
-		if v.VmessManager == nil && v.VmessInboundTag != "" {
+		if v.VmessManager != nil {
 			if err := v.VmessManager.DelUser(ru.Email); err != nil {
 				v.Logger.Error(err.Error())
 			}
 			v.Logger.Info("删除Vmess用户", zap.String("email", ru.Email), zap.String("uuid", ru.UUID))
 		}
 
-		if v.VlessManager == nil && v.VlessInboundTag != "" {
+		if v.VlessManager != nil {
 			if err := v.VlessManager.DelUser(ru.Email); err != nil {
 				v.Logger.Error(err.Error())
 			}
