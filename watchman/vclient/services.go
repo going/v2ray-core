@@ -13,6 +13,7 @@ import (
 	"v2ray.com/core/common/serial"
 	"v2ray.com/core/common/uuid"
 	"v2ray.com/core/proxy/shadowsocks"
+	"v2ray.com/core/proxy/vless"
 	"v2ray.com/core/proxy/vmess"
 	"v2ray.com/core/proxy/vmess/inbound"
 	"v2ray.com/core/transport/internet"
@@ -49,6 +50,7 @@ var CipherTypeMap = map[string]shadowsocks.CipherType{
 type HandlerServiceClient struct {
 	command.HandlerServiceClient
 	InboundTag string
+	IsVless    bool
 }
 
 func NewHandlerServiceClient(client *grpc.ClientConn, inboundTag string) *HandlerServiceClient {
@@ -72,6 +74,10 @@ func (h *HandlerServiceClient) AddUser(user *proto.UserModel) error {
 		Tag:       h.InboundTag,
 		Operation: serial.ToTypedMessage(&command.AddUserOperation{User: h.ConvertVmessUser(user)}),
 	}
+	if h.IsVless {
+		req.Operation = serial.ToTypedMessage(&command.AddUserOperation{User: h.ConvertVmessUser(user)})
+	}
+
 	return h.AlterInbound(req)
 }
 
@@ -189,6 +195,16 @@ func (h *HandlerServiceClient) ConvertVmessUser(userModel *proto.UserModel) *pro
 			SecuritySettings: &protocol.SecurityConfig{
 				Type: protocol.SecurityType_AUTO,
 			},
+		}),
+	}
+}
+
+func (h *HandlerServiceClient) ConvertVlessUser(userModel *proto.UserModel) *protocol.User {
+	return &protocol.User{
+		Level: 0,
+		Email: userModel.Email,
+		Account: serial.ToTypedMessage(&vless.Account{
+			Id: userModel.UUID,
 		}),
 	}
 }
