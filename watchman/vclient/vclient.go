@@ -18,15 +18,20 @@ import (
 	"google.golang.org/grpc"
 )
 
-const DefaultInboundTag = "v2-proxy"
+const (
+	DefaultVmessInboundTag = "vmess-proxy"
+	DefaultVlessInboundTag = "vless-proxy"
+)
 
 type VClient struct {
-	Conn       *grpc.ClientConn
-	Stats      *StatsServiceClient
-	Manager    *HandlerServiceClient
-	Logger     *zap.Logger
-	Accounts   map[string]*proto.UserModel
-	InboundTag string
+	Conn            *grpc.ClientConn
+	Stats           *StatsServiceClient
+	VmessManager    *HandlerServiceClient
+	VlessManager    *HandlerServiceClient
+	Logger          *zap.Logger
+	Accounts        map[string]*proto.UserModel
+	VmessInboundTag string
+	VlessInboundTag string
 }
 
 func Connect(address string, timeoutDuration time.Duration) (*VClient, error) {
@@ -50,11 +55,13 @@ func Connect(address string, timeoutDuration time.Duration) (*VClient, error) {
 	}
 }
 
-func (v *VClient) InitServices(inboundTag string) error {
-	if inboundTag != "" {
-		v.InboundTag = inboundTag
-	} else {
-		v.InboundTag = DefaultInboundTag
+func (v *VClient) InitServices(vmessInboundTag, vlessInboundTag string) error {
+	if vmessInboundTag != "" {
+		v.VmessInboundTag = vmessInboundTag
+	}
+
+	if vlessInboundTag != "" {
+		v.VlessInboundTag = vlessInboundTag
 	}
 
 	if v.Conn == nil {
@@ -66,32 +73,25 @@ func (v *VClient) InitServices(inboundTag string) error {
 		v.Stats = NewStatsServiceClient(v.Conn)
 	}
 
-	if v.Manager == nil {
-		v.Logger.Debug("start manage service")
-		v.Manager = NewHandlerServiceClient(v.Conn, v.InboundTag)
+	if v.VmessManager == nil && v.VmessInboundTag != "" {
+		v.Logger.Debug("start vmess manage service")
+		v.VmessManager = NewHandlerServiceClient(v.Conn, v.VmessInboundTag)
+	}
+
+	if v.VlessManager == nil && v.VlessInboundTag != "" {
+		v.Logger.Debug("start vless manage service")
+		v.VlessManager = NewHandlerServiceClient(v.Conn, v.VlessInboundTag)
 	}
 
 	return nil
 }
 
-func (v *VClient) Startup(dbUrl, inboundTag string, nodeId int64) error {
+func (v *VClient) Startup(dbUrl string, nodeId int64) error {
 	database.Connect(context.TODO(), v.Logger, &proto.DBConfig{
 		Master:  dbUrl,
 		MaxIdle: 10,
 		MaxOpen: 10,
 	})
-
-	// if inboundTag != "" && inboundTag != DefaultInboundTag {
-	// 	if err := v.Manager.RemoveInbound(); err != nil {
-	// 		v.Logger.Error(err.Error())
-	// 	}
-
-	// 	if err := v.AddMainInbound(); err != nil {
-	// 		v.Logger.Fatal(err.Error())
-	// 	}
-
-	// 	time.Sleep(time.Second)
-	// }
 
 	if err := v.Sync(nodeId); err != nil {
 		v.Logger.Error(err.Error())
@@ -111,7 +111,7 @@ func (v *VClient) Startup(dbUrl, inboundTag string, nodeId int64) error {
 
 func (v *VClient) AddMainInbound(port uint16) error {
 	streamSetting := &internet.StreamConfig{}
-	if err := v.Manager.AddVmessInbound(port, "0.0.0.0", streamSetting); err != nil {
+	if err := v.VmessManager.AddVmessInbound(port, "0.0.0.0", streamSetting); err != nil {
 		return err
 	} else {
 		v.Logger.Debug(fmt.Sprintf("Successfully add MAIN INBOUND %s port %d", "0.0.0.0", port))
@@ -164,42 +164,64 @@ func (v *VClient) syncAccounts() {
 	for i := range addedUsers {
 		user := addedUsers[i]
 		v.Logger.Info("新增用户", zap.String("email", user.Email), zap.String("uuid", user.UUID))
-		if err := v.Manager.AddVmessUser(user); err != nil {
-			v.Logger.Error(err.Error())
+		if v.VmessManager == nil && v.VmessInboundTag != "" {
+			if err := v.VmessManager.AddUser(user); err != nil {
+				v.Logger.Error(err.Error())
+			}
 		}
-		if err := v.Manager.AddVlessUser(user); err != nil {
-			v.Logger.Error(err.Error())
+
+		if v.VlessManager == nil && v.VlessInboundTag != "" {
+			if err := v.VlessManager.AddUser(user); err != nil {
+				v.Logger.Error(err.Error())
+			}
 		}
+
 	}
 
 	for i := range modifiedUsers {
 		user := modifiedUsers[i]
 		v.Logger.Info("修改用户", zap.String("email", user.Email), zap.String("uuid", user.UUID))
-		if err := v.Manager.DelVmessUser(user.Email); err != nil {
-			v.Logger.Error(err.Error())
-		}
-		if err := v.Manager.AddVmessUser(user); err != nil {
-			v.Logger.Error(err.Error())
+		if v.VmessManager == nil && v.VmessInboundTag != "" {
+			if err := v.VmessManager.DelUser(user.Email); err != nil {
+				v.Logger.Error(err.Error())
+			}
 		}
 
-		if err := v.Manager.DelVlessUser(user.Email); err != nil {
-			v.Logger.Error(err.Error())
+		if v.VlessManager == nil && v.VlessInboundTag != "" {
+			if err := v.VlessManager.DelUser(user.Email); err != nil {
+				v.Logger.Error(err.Error())
+			}
 		}
-		if err := v.Manager.AddVlessUser(user); err != nil {
-			v.Logger.Error(err.Error())
+
+		if v.VmessManager == nil && v.VmessInboundTag != "" {
+			if err := v.VmessManager.AddUser(user); err != nil {
+				v.Logger.Error(err.Error())
+			}
 		}
+
+		if v.VlessManager == nil && v.VlessInboundTag != "" {
+			if err := v.VlessManager.AddUser(user); err != nil {
+				v.Logger.Error(err.Error())
+			}
+		}
+
 	}
 
 	for i := range removedUsers {
 		ru := removedUsers[i]
 		v.Logger.Info("删除用户", zap.String("email", ru.Email), zap.String("uuid", ru.UUID))
-		if err := v.Manager.DelVmessUser(ru.Email); err != nil {
-			v.Logger.Error(err.Error())
+		if v.VmessManager == nil && v.VmessInboundTag != "" {
+			if err := v.VmessManager.DelUser(ru.Email); err != nil {
+				v.Logger.Error(err.Error())
+			}
 		}
 
-		if err := v.Manager.DelVlessUser(ru.Email); err != nil {
-			v.Logger.Error(err.Error())
+		if v.VlessManager == nil && v.VlessInboundTag != "" {
+			if err := v.VlessManager.DelUser(ru.Email); err != nil {
+				v.Logger.Error(err.Error())
+			}
 		}
+
 	}
 	v.Accounts = newAccounts
 }

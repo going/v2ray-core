@@ -30,10 +30,11 @@ var (
 	test        = flag.Bool("test", false, "Test config file only, without launching V2Ray server.")
 	format      = flag.String("format", "json", "Format of input file.")
 
-	address    = flag.String("address", "127.0.0.1:4321", "v2ray gRPC server address")
-	inboundTag = flag.String("tag", "vmess-proxy", "v2ray inbound tag name")
-	dbUrl      = flag.String("db", "222kingshard333:sddssds3322we@tcp(108.160.132.5:1795)/ss2", "database address")
-	nodeId     = flag.Int64("node", 1, "node id")
+	address         = flag.String("address", "127.0.0.1:4321", "v2ray gRPC server address")
+	vmessInboundTag = flag.String("vmess-inbound", "vmess-proxy", "vmess inbound tag name")
+	vlessInboundTag = flag.String("vless-inbound", "vless-proxy", "vless inbound tag name")
+	dbUrl           = flag.String("db", "222kingshard333:sddssds3322we@tcp(108.160.132.5:1795)/ss2", "database address")
+	nodeId          = flag.Int64("node", 1, "node id")
 
 	/* We have to do this here because Golang's Test will also need to parse flag, before
 	 * main func in this file is run.
@@ -170,7 +171,7 @@ func main() {
 	time.Sleep(time.Second)
 
 	go func() {
-		watchman.Start(*address, *inboundTag, *dbUrl, *nodeId)
+		watchman.Start(*address, *vmessInboundTag, *vlessInboundTag, *dbUrl, *nodeId)
 		fmt.Println("big brother is watching now.")
 	}()
 
