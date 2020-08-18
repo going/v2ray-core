@@ -49,14 +49,15 @@ var CipherTypeMap = map[string]shadowsocks.CipherType{
 
 type HandlerServiceClient struct {
 	command.HandlerServiceClient
-	InboundTag string
-	IsVless    bool
+	InboundTag   string
+	VlessEnabled bool
 }
 
-func NewHandlerServiceClient(client *grpc.ClientConn, inboundTag string) *HandlerServiceClient {
+func NewHandlerServiceClient(client *grpc.ClientConn, inboundTag string, vlessEnabled bool) *HandlerServiceClient {
 	return &HandlerServiceClient{
 		HandlerServiceClient: command.NewHandlerServiceClient(client),
 		InboundTag:           inboundTag,
+		VlessEnabled:         vlessEnabled,
 	}
 }
 
@@ -74,8 +75,8 @@ func (h *HandlerServiceClient) AddUser(user *proto.UserModel) error {
 		Tag:       h.InboundTag,
 		Operation: serial.ToTypedMessage(&command.AddUserOperation{User: h.ConvertVmessUser(user)}),
 	}
-	if h.IsVless {
-		req.Operation = serial.ToTypedMessage(&command.AddUserOperation{User: h.ConvertVmessUser(user)})
+	if h.VlessEnabled {
+		req.Operation = serial.ToTypedMessage(&command.AddUserOperation{User: h.ConvertVlessUser(user)})
 	}
 
 	return h.AlterInbound(req)

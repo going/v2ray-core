@@ -75,12 +75,12 @@ func (v *VClient) InitServices(vmessInboundTag, vlessInboundTag string) error {
 
 	if v.VmessManager == nil && v.VmessInboundTag != "" {
 		v.Logger.Debug("start vmess manage service")
-		v.VmessManager = NewHandlerServiceClient(v.Conn, v.VmessInboundTag)
+		v.VmessManager = NewHandlerServiceClient(v.Conn, v.VmessInboundTag, false)
 	}
 
 	if v.VlessManager == nil && v.VlessInboundTag != "" {
 		v.Logger.Debug("start vless manage service")
-		v.VlessManager = NewHandlerServiceClient(v.Conn, v.VlessInboundTag)
+		v.VlessManager = NewHandlerServiceClient(v.Conn, v.VlessInboundTag, true)
 	}
 
 	return nil
