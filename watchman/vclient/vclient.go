@@ -164,7 +164,10 @@ func (v *VClient) syncAccounts() {
 	for i := range addedUsers {
 		user := addedUsers[i]
 		v.Logger.Info("新增用户", zap.String("email", user.Email), zap.String("uuid", user.UUID))
-		if err := v.Manager.AddUser(user); err != nil {
+		if err := v.Manager.AddVmessUser(user); err != nil {
+			v.Logger.Error(err.Error())
+		}
+		if err := v.Manager.AddVlessUser(user); err != nil {
 			v.Logger.Error(err.Error())
 		}
 	}
@@ -172,10 +175,17 @@ func (v *VClient) syncAccounts() {
 	for i := range modifiedUsers {
 		user := modifiedUsers[i]
 		v.Logger.Info("修改用户", zap.String("email", user.Email), zap.String("uuid", user.UUID))
-		if err := v.Manager.DelUser(user.Email); err != nil {
+		if err := v.Manager.DelVmessUser(user.Email); err != nil {
 			v.Logger.Error(err.Error())
 		}
-		if err := v.Manager.AddUser(user); err != nil {
+		if err := v.Manager.AddVmessUser(user); err != nil {
+			v.Logger.Error(err.Error())
+		}
+
+		if err := v.Manager.DelVlessUser(user.Email); err != nil {
+			v.Logger.Error(err.Error())
+		}
+		if err := v.Manager.AddVlessUser(user); err != nil {
 			v.Logger.Error(err.Error())
 		}
 	}
@@ -183,7 +193,11 @@ func (v *VClient) syncAccounts() {
 	for i := range removedUsers {
 		ru := removedUsers[i]
 		v.Logger.Info("删除用户", zap.String("email", ru.Email), zap.String("uuid", ru.UUID))
-		if err := v.Manager.DelUser(ru.Email); err != nil {
+		if err := v.Manager.DelVmessUser(ru.Email); err != nil {
+			v.Logger.Error(err.Error())
+		}
+
+		if err := v.Manager.DelVlessUser(ru.Email); err != nil {
 			v.Logger.Error(err.Error())
 		}
 	}

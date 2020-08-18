@@ -59,7 +59,7 @@ func NewHandlerServiceClient(client *grpc.ClientConn, inboundTag string) *Handle
 }
 
 // user
-func (h *HandlerServiceClient) DelUser(email string) error {
+func (h *HandlerServiceClient) DelVmessUser(email string) error {
 	req := &command.AlterInboundRequest{
 		Tag:       h.InboundTag,
 		Operation: serial.ToTypedMessage(&command.RemoveUserOperation{Email: email}),
@@ -67,10 +67,26 @@ func (h *HandlerServiceClient) DelUser(email string) error {
 	return h.AlterInbound(req)
 }
 
-func (h *HandlerServiceClient) AddUser(user *proto.UserModel) error {
+func (h *HandlerServiceClient) DelVlessUser(email string) error {
+	req := &command.AlterInboundRequest{
+		Tag:       h.InboundTag,
+		Operation: serial.ToTypedMessage(&command.RemoveUserOperation{Email: email}),
+	}
+	return h.AlterInbound(req)
+}
+
+func (h *HandlerServiceClient) AddVmessUser(user *proto.UserModel) error {
 	req := &command.AlterInboundRequest{
 		Tag:       h.InboundTag,
 		Operation: serial.ToTypedMessage(&command.AddUserOperation{User: h.ConvertVmessUser(user)}),
+	}
+	return h.AlterInbound(req)
+}
+
+func (h *HandlerServiceClient) AddVlessUser(user *proto.UserModel) error {
+	req := &command.AlterInboundRequest{
+		Tag:       h.InboundTag,
+		Operation: serial.ToTypedMessage(&command.AddUserOperation{User: h.ConvertVlessUser(user)}),
 	}
 	return h.AlterInbound(req)
 }
@@ -186,6 +202,20 @@ func (h *HandlerServiceClient) ConvertVmessUser(userModel *proto.UserModel) *pro
 		Account: serial.ToTypedMessage(&vmess.Account{
 			Id:      userModel.UUID,
 			AlterId: userModel.AlterID,
+			SecuritySettings: &protocol.SecurityConfig{
+				Type: protocol.SecurityType_AUTO,
+			},
+		}),
+	}
+}
+
+func (h *HandlerServiceClient) ConvertVlessUser(userModel *proto.UserModel) *protocol.User {
+	return &protocol.User{
+		Level: 0,
+		Email: userModel.Email,
+		Account: serial.ToTypedMessage(&vmess.Account{
+			Id:      userModel.UUID,
+			AlterId: 0,
 			SecuritySettings: &protocol.SecurityConfig{
 				Type: protocol.SecurityType_AUTO,
 			},
