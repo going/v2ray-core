@@ -3,69 +3,33 @@ package watchman
 import (
 	"bytes"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"io"
-	"os"
-	"path/filepath"
-	"strings"
 
 	"v2ray.com/core/common/errors"
-	"v2ray.com/core/common/platform"
-	"v2ray.com/core/common/protocol"
 	"v2ray.com/core/infra/conf"
 	json_reader "v2ray.com/core/infra/conf/json"
 	"v2ray.com/core/main/confloader"
 )
 
-var (
-	commandLine = flag.NewFlagSet(os.Args[0]+"-tian", flag.ContinueOnError)
-	configFile  = commandLine.String("config", "", "Config file for V2Ray.")
-)
-
-type UserConfig struct {
-	InboundTag     string `json:"inboundTag"`
-	Level          uint32 `json:"level"`
-	AlterID        uint32 `json:"alterId"`
-	SecurityStr    string `json:"securityConfig"`
-	securityConfig *protocol.SecurityConfig
-}
-
-func (c *UserConfig) UnmarshalJSON(data []byte) error {
-	type config UserConfig
-	var cfg config
-	if err := json.Unmarshal(data, &cfg); err != nil {
-		return err
-	}
-
-	// set default value
-	if cfg.SecurityStr == "" {
-		cfg.SecurityStr = "AUTO"
-	}
-
-	cfg.securityConfig = &protocol.SecurityConfig{
-		Type: protocol.SecurityType(protocol.SecurityType_value[strings.ToUpper(cfg.SecurityStr)]),
-	}
-	*c = UserConfig(cfg)
-	return nil
-}
+const API_ADDRESS string = "127.0.0.1:4321"
 
 type Config struct {
-	NodeID             uint        `json:"nodeId"`
-	CheckRate          int         `json:"checkRate"`
-	DBUrl              string      `json:"dburl"`
-	UserConfig         *UserConfig `json:"user"`
-	IgnoreEmptyVmessID bool        `json:"ignoreEmptyVmessID"`
-	v2rayConfig        *conf.Config
+	NodeID          int64  `json:"nodeId"`
+	CheckRate       int64  `json:"checkRate"`
+	DBUrl           string `json:"dburl"`
+	ApiAddress      string `json:"apiaddress"`
+	VmessInboundTag string `json:"vmessInboundTag"`
+	VlessInboundTag string `json:"vlessInboundTag"`
+	v2rayConfig     *conf.Config
 }
 
-func getConfig() (*Config, error) {
+func LoadConfig(configFile string) (*Config, error) {
 	type config struct {
 		*conf.Config
-		SSRPanel *Config `json:"tian"`
+		Watchman *Config `json:"watchman"`
 	}
 
-	configFile := getConfigFilePath()
 	configInput, err := confloader.LoadConfig(configFile)
 	if err != nil {
 		return nil, errors.New("failed to load config: ", configFile).Base(err)
@@ -75,14 +39,18 @@ func getConfig() (*Config, error) {
 	if err = decodeCommentJSON(configInput, cfg); err != nil {
 		return nil, err
 	}
-	if cfg.SSRPanel != nil {
-		cfg.SSRPanel.v2rayConfig = cfg.Config
-		if err = checkCfg(cfg.SSRPanel); err != nil {
+	if cfg.Watchman != nil {
+		cfg.Watchman.v2rayConfig = cfg.Config
+		if err = checkCfg(cfg.Watchman); err != nil {
 			return nil, err
+		}
+
+		if cfg.Watchman.ApiAddress == "" {
+			cfg.Watchman.ApiAddress = API_ADDRESS
 		}
 	}
 
-	return cfg.SSRPanel, err
+	return cfg.Watchman, err
 }
 
 func checkCfg(cfg *Config) error {
@@ -118,8 +86,12 @@ func checkCfg(cfg *Config) error {
 		}
 	}
 
-	if inbound := getInboundConfigByTag(cfg.UserConfig.InboundTag, cfg.v2rayConfig.InboundConfigs); inbound == nil {
-		return errors.New(fmt.Sprintf("Miss an inbound tagged %s", cfg.UserConfig.InboundTag))
+	if inbound := getInboundConfigByTag(cfg.VmessInboundTag, cfg.v2rayConfig.InboundConfigs); inbound == nil {
+		return errors.New(fmt.Sprintf("Miss an inbound tagged %s", cfg.VmessInboundTag))
+	}
+
+	if inbound := getInboundConfigByTag(cfg.VlessInboundTag, cfg.v2rayConfig.InboundConfigs); inbound == nil {
+		return errors.New(fmt.Sprintf("Miss an inbound tagged %s", cfg.VlessInboundTag))
 	}
 
 	return nil
@@ -134,25 +106,6 @@ func getInboundConfigByTag(apiTag string, inbounds []conf.InboundDetourConfig) *
 	return nil
 }
 
-func getConfigFilePath() string {
-	if len(*configFile) > 0 {
-		return *configFile
-	}
-
-	if workingDir, err := os.Getwd(); err == nil {
-		configFile := filepath.Join(workingDir, "config.json")
-		if fileExists(configFile) {
-			return configFile
-		}
-	}
-
-	if configFile := platform.GetConfigurationPath(); fileExists(configFile) {
-		return configFile
-	}
-
-	return ""
-}
-
 func decodeCommentJSON(reader io.Reader, i interface{}) error {
 	jsonContent := bytes.NewBuffer(make([]byte, 0, 10240))
 	jsonReader := io.TeeReader(&json_reader.Reader{
@@ -160,11 +113,6 @@ func decodeCommentJSON(reader io.Reader, i interface{}) error {
 	}, jsonContent)
 	decoder := json.NewDecoder(jsonReader)
 	return decoder.Decode(i)
-}
-
-func fileExists(file string) bool {
-	info, err := os.Stat(file)
-	return err == nil && !info.IsDir()
 }
 
 func InStr(s string, list []string) bool {

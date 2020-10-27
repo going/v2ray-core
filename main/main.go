@@ -30,12 +30,6 @@ var (
 	test        = flag.Bool("test", false, "Test config file only, without launching V2Ray server.")
 	format      = flag.String("format", "json", "Format of input file.")
 
-	address         = flag.String("address", "127.0.0.1:4321", "v2ray gRPC server address")
-	vmessInboundTag = flag.String("vmess-inbound", "vmess-proxy", "vmess inbound tag name")
-	vlessInboundTag = flag.String("vless-inbound", "vless-proxy", "vless inbound tag name")
-	dbUrl           = flag.String("db", "222kingshard333:sddssds3322we@tcp(108.160.132.5:1795)/ss2", "database address")
-	nodeId          = flag.Int64("node", 1, "node id")
-
 	/* We have to do this here because Golang's Test will also need to parse flag, before
 	 * main func in this file is run.
 	 */
@@ -134,6 +128,22 @@ func startV2Ray() (core.Server, error) {
 	return server, nil
 }
 
+func startWatchman() (*watchman.Server, error) {
+	configFiles, err := getConfigFilePath()
+	if err != nil {
+		return nil, err
+	}
+
+	config, err := watchman.LoadConfig(configFiles[0])
+	if err != nil {
+		return nil, newError("failed to read config files: [", configFiles.String(), "]").Base(err)
+	}
+
+	server := watchman.New(config)
+
+	return server, nil
+}
+
 func printVersion() {
 	version := core.VersionStatement()
 	for _, s := range version {
@@ -171,7 +181,13 @@ func main() {
 	time.Sleep(time.Second)
 
 	go func() {
-		watchman.Start(*address, *vmessInboundTag, *vlessInboundTag, *dbUrl, *nodeId)
+		watchmanServer, err := startWatchman()
+		if err != nil {
+			fmt.Println(err)
+			// Configuration error. Exit with a special value to prevent systemd from restarting.
+			os.Exit(23)
+		}
+		watchmanServer.Start()
 		fmt.Println("big brother is watching now.")
 	}()
 

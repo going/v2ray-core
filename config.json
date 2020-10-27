@@ -1,4 +1,12 @@
 {
+    "watchman": {
+        "dburl": "222kingshard333:sddssds3322we@tcp(108.160.132.5:1795)/ss2",
+        "apiaddress": "127.0.0.1:4321",
+        "vmessInboundTag": "vmess-proxy",
+        "vlessInboundTag": "vless-proxy",
+        "checkRate": 60,
+        "nodeId": 1
+    },
     "log": {
         "loglevel": "debug"
     },
