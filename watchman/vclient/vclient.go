@@ -6,11 +6,9 @@ import (
 	"fmt"
 	"time"
 
-	"v2ray.com/core/watchman/controllers"
-
-	"v2ray.com/core/watchman/database"
-
 	"v2ray.com/core/transport/internet"
+	"v2ray.com/core/watchman/controllers"
+	"v2ray.com/core/watchman/database"
 	"v2ray.com/core/watchman/logging"
 	"v2ray.com/core/watchman/proto"
 
