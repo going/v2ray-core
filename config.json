@@ -27,19 +27,15 @@
             "settings": {
                 "clients": [{
                     "id": "fcecbd2b-3a34-4201-bd3d-7c67d89c26ba",
+                    "flow": "",
                     "level": 0,
                     "email": "admin@tian.network"
                 }],
-                "fallback": {
-                    "addr": "127.0.0.1",
-                    "port": 8001,
-                    "xver": 0
-                },
-                "fallback_h2": {
-                    "addr": "127.0.0.1",
-                    "port": 8002,
-                    "xver": 0
-                },
+                "fallbacks": [
+                    {
+                        "dest": 80
+                    }
+                ],
                 "decryption": "none"
             },
             "streamSettings": {
