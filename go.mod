@@ -4,10 +4,12 @@ go 1.15
 
 require (
 	github.com/dgryski/go-metro v0.0.0-20200812162917-85c65e2d0165 // indirect
+	github.com/go-sql-driver/mysql v1.5.0
 	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.4.2
 	github.com/google/go-cmp v0.5.2
 	github.com/gorilla/websocket v1.4.2
+	github.com/jmoiron/sqlx v1.2.0
 	github.com/lucas-clemente/quic-go v0.18.1
 	github.com/miekg/dns v1.1.31
 	github.com/pires/go-proxyproto v0.2.0
@@ -16,6 +18,7 @@ require (
 	github.com/xiaokangwang/VSign v0.0.0-20200828155424-dc1c86b73fbf
 	github.com/xtls/go v0.0.0-20201007031018-d42c13c57942
 	go.starlark.net v0.0.0-20201006213952-227f4aabceb5
+	go.uber.org/zap v1.16.0
 	golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0
 	golang.org/x/net v0.0.0-20201006153459-a7d1128ccaa0
 	golang.org/x/sync v0.0.0-20200930132711-30421366ff76
