@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/rand"
 	"time"
 
 	"v2ray.com/core/transport/internet"
@@ -84,7 +85,7 @@ func (v *VClient) InitServices(vmessInboundTag, vlessInboundTag string) error {
 	return nil
 }
 
-func (v *VClient) Startup(dbUrl string, nodeId int64) error {
+func (v *VClient) Startup(dbUrl string, nodeId, checkRate int64) error {
 	database.Connect(context.TODO(), v.Logger, &proto.DBConfig{
 		Master:  dbUrl,
 		MaxIdle: 10,
@@ -95,10 +96,10 @@ func (v *VClient) Startup(dbUrl string, nodeId int64) error {
 		v.Logger.Error(err.Error())
 	}
 
-	tick := time.Tick(time.Second * 150)
+	tick := time.Tick(time.Second * time.Duration(rand.Int63n(checkRate)))
 
 	for c := range tick {
-		v.Logger.Info(c.String())
+		v.Logger.Info("sync database: ", zap.String("time", c.String()))
 		if err := v.Sync(nodeId); err != nil {
 			v.Logger.Error(err.Error())
 		}
