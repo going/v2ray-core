@@ -124,23 +124,23 @@ func (v *VClient) Sync(nodeId int64) error {
 		return err
 	}
 
-	v.syncAccounts()
+	v.syncAccounts(nodeId)
 	return nil
 }
 
-func (v *VClient) loadAccounts() []*proto.UserModel {
+func (v *VClient) loadAccounts(nodeId int64) []*proto.UserModel {
 	var accounts []*proto.UserModel
-	if err := controllers.Agent.GetAccounts(context.TODO(), &accounts); err != nil {
+	if err := controllers.Agent.GetAccounts(context.TODO(), nodeId, &accounts); err != nil {
 		v.Logger.Error(err.Error())
 	}
 	return accounts
 }
 
-func (v *VClient) syncAccounts() {
+func (v *VClient) syncAccounts(nodeId int64) {
 	var addedUsers []*proto.UserModel
 	var modifiedUsers []*proto.UserModel
 	var removedUsers []*proto.UserModel
-	accounts := v.loadAccounts()
+	accounts := v.loadAccounts(nodeId)
 
 	newAccounts := make(map[string]*proto.UserModel)
 

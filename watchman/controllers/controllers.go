@@ -30,11 +30,10 @@ type agentsController struct {
 }
 
 // List Address interface{} by input
-func (c *agentsController) GetAccounts(ctx context.Context, outputs interface{}) error {
-	// stmt := "SELECT u.* from user u LEFT JOIN (SELECT userid, COUNT(DISTINCT ip) AS cnt FROM alive_ip WHERE datetime >= UNIX_TIMESTAMP(DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 3 MINUTE)) GROUP BY userid) u2 ON u.id = u2.userid WHERE u.enable = 1 AND u.uuid IS NOT NULL AND u.class_expire >= CURRENT_TIMESTAMP AND u.class > 1 AND u.transfer_enable > 0 AND (u2.cnt IS NULL OR u2.cnt <= u.node_connector);"
-	stmt := "SELECT u.* from user u LEFT JOIN (SELECT userid, COUNT(DISTINCT ip) AS cnt FROM alive_ip WHERE datetime >= UNIX_TIMESTAMP(DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 3 MINUTE)) GROUP BY userid) u2 ON u.id = u2.userid WHERE u.enable = 1 AND u.uuid IS NOT NULL AND u.class_expire >= CURRENT_TIMESTAMP AND u.class > 1 AND u.transfer_enable > 0;"
+func (c *agentsController) GetAccounts(ctx context.Context, nodeId int64, outputs interface{}) error {
+	stmt := "SELECT u.* from user u WHERE u.enable = 1 AND u.uuid IS NOT NULL AND u.class_expire >= CURRENT_TIMESTAMP AND u.transfer_enable > 0 AND class >= (SELECT node_class FROM ss_node WHERE id = ?);"
 	return c.Invoke(ctx, func(db connector.Q) error {
-		return db.SelectContext(ctx, outputs, stmt) // nolint: errcheck
+		return db.SelectContext(ctx, outputs, stmt, nodeId) // nolint: errcheck
 	})
 }
 
