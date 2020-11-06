@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math/rand"
 	"time"
 
 	"v2ray.com/core/transport/internet"
@@ -96,7 +95,7 @@ func (v *VClient) Startup(dbUrl string, nodeId, checkRate int64) error {
 		v.Logger.Error(err.Error())
 	}
 
-	tick := time.Tick(time.Second * time.Duration(rand.Int63n(checkRate)))
+	tick := time.Tick(time.Second * time.Duration(checkRate))
 
 	for c := range tick {
 		v.Logger.Info("sync database: ", zap.String("time", c.String()))
