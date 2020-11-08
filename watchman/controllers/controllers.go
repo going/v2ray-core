@@ -31,7 +31,7 @@ type agentsController struct {
 
 // List Address interface{} by input
 func (c *agentsController) GetAccounts(ctx context.Context, nodeId int64, outputs interface{}) error {
-	stmt := "SELECT u.* from user u WHERE u.enable = 1 AND u.uuid IS NOT NULL AND u.class_expire >= CURRENT_TIMESTAMP AND u.transfer_enable > 0 AND class >= (SELECT node_class FROM ss_node WHERE id = ?);"
+	stmt := "SELECT u.id, u.email, u.uuid, u.AlterId from user u WHERE u.enable = 1 AND u.uuid IS NOT NULL AND u.class_expire >= CURRENT_TIMESTAMP AND u.transfer_enable > 0 AND class >= (SELECT node_class FROM ss_node WHERE id = ?);"
 	return c.Invoke(ctx, func(db connector.Q) error {
 		return db.SelectContext(ctx, outputs, stmt, nodeId) // nolint: errcheck
 	})

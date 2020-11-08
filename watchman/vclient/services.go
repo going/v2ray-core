@@ -2,7 +2,6 @@ package vclient
 
 import (
 	"context"
-	"strings"
 
 	"google.golang.org/grpc"
 	"v2ray.com/core"
@@ -158,22 +157,6 @@ func (h *HandlerServiceClient) AddVmessInbound(port uint16, address string, stre
 	return h.AddInbound(addInboundRequest)
 }
 
-func (h *HandlerServiceClient) AddSSInbound(user *proto.UserModel) error {
-	addInboundRequest := &command.AddInboundRequest{
-		Inbound: &core.InboundHandlerConfig{
-			Tag: h.InboundTag,
-			ReceiverSettings: serial.ToTypedMessage(&proxyman.ReceiverConfig{
-				PortRange: net.SinglePortRange(net.Port(user.Port)),
-				Listen:    net.NewIPOrDomain(net.ParseAddress("0.0.0.0")),
-			}),
-			ProxySettings: serial.ToTypedMessage(&shadowsocks.ServerConfig{
-				User:    h.ConvertSSUser(user),
-				Network: []net.Network{net.Network_TCP, net.Network_UDP},
-			}),
-		},
-	}
-	return h.AddInbound(addInboundRequest)
-}
 func (h *HandlerServiceClient) AddInbound(req *command.AddInboundRequest) error {
 	_, err := h.HandlerServiceClient.AddInbound(context.Background(), req)
 	return err
@@ -206,17 +189,6 @@ func (h *HandlerServiceClient) ConvertVlessUser(userModel *proto.UserModel) *pro
 		Email: userModel.Email,
 		Account: serial.ToTypedMessage(&vless.Account{
 			Id: userModel.UUID,
-		}),
-	}
-}
-
-func (h *HandlerServiceClient) ConvertSSUser(userModel *proto.UserModel) *protocol.User {
-	return &protocol.User{
-		Level: 0,
-		Email: userModel.Email,
-		Account: serial.ToTypedMessage(&shadowsocks.Account{
-			Password:   userModel.Password,
-			CipherType: CipherTypeMap[strings.ToLower(userModel.Method)],
 		}),
 	}
 }

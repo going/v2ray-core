@@ -5,9 +5,6 @@ type UserModel struct {
 	Email    string          `db:"email"`
 	UUID     string          `db:"uuid"`
 	AlterID  uint32          `db:"AlterId"`
-	Password string          `db:"passwd"`
-	Method   string          `db:"method"`
-	Port     uint16          `db:"port"`
 	Traffics *UserTrafficLog `db:"-"`
 }
 
