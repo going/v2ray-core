@@ -5,6 +5,7 @@
         "vmessInboundTag": "vmess-proxy",
         "vlessInboundTag": "vless-proxy",
         "checkRate": 60,
+        "vip": false,
         "nodeId": 1
     },
     "log": {

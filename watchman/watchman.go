@@ -24,7 +24,7 @@ func (w *Server) Start() {
 		logger.Fatal(err.Error())
 	}
 	logger.Debug("watchman services start")
-	if err := vc.Startup(w.Config.DBUrl, w.Config.NodeID, w.Config.CheckRate); err != nil {
+	if err := vc.Startup(w.Config.DBUrl, w.Config.NodeID, w.Config.CheckRate, w.Config.VIP); err != nil {
 		logger.Fatal(err.Error())
 	}
 }

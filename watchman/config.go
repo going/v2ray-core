@@ -15,6 +15,7 @@ import (
 const API_ADDRESS string = "127.0.0.1:4321"
 
 type Config struct {
+	VIP             bool   `json:"vip"`
 	NodeID          int64  `json:"nodeId"`
 	CheckRate       int64  `json:"checkRate"`
 	DBUrl           string `json:"dburl"`

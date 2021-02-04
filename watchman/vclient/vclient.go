@@ -84,14 +84,14 @@ func (v *VClient) InitServices(vmessInboundTag, vlessInboundTag string) error {
 	return nil
 }
 
-func (v *VClient) Startup(dbUrl string, nodeId, checkRate int64) error {
+func (v *VClient) Startup(dbUrl string, nodeId, checkRate int64, isVIP bool) error {
 	database.Connect(context.TODO(), v.Logger, &proto.DBConfig{
 		Master:  dbUrl,
 		MaxIdle: 10,
 		MaxOpen: 10,
 	})
 
-	if err := v.Sync(nodeId); err != nil {
+	if err := v.Sync(nodeId, isVIP); err != nil {
 		v.Logger.Error(err.Error())
 	}
 
@@ -99,7 +99,7 @@ func (v *VClient) Startup(dbUrl string, nodeId, checkRate int64) error {
 
 	for c := range tick {
 		v.Logger.Info("sync database: ", zap.String("time", c.String()))
-		if err := v.Sync(nodeId); err != nil {
+		if err := v.Sync(nodeId, isVIP); err != nil {
 			v.Logger.Error(err.Error())
 		}
 	}
@@ -117,8 +117,8 @@ func (v *VClient) AddMainInbound(port uint16) error {
 	return nil
 }
 
-func (v *VClient) Sync(nodeId int64) error {
-	if err := v.syncTraffics(nodeId); err != nil {
+func (v *VClient) Sync(nodeId int64, isVIP bool) error {
+	if err := v.syncTraffics(nodeId, isVIP); err != nil {
 		v.Logger.Error(err.Error())
 		return err
 	}
@@ -229,7 +229,7 @@ func (v *VClient) syncAccounts(nodeId int64) {
 	v.Accounts = newAccounts
 }
 
-func (v *VClient) syncTraffics(nodeId int64) error {
+func (v *VClient) syncTraffics(nodeId int64, isVIP bool) error {
 	var totalTraffic int64
 	for _, a := range v.Accounts {
 		ut, err := v.Stats.GetUserTraffic(a.Email, true)
@@ -239,7 +239,7 @@ func (v *VClient) syncTraffics(nodeId int64) error {
 		}
 		a.Traffics = ut
 		if ut.Uploads+ut.Downloads > 0 {
-			if err := controllers.Agent.UpdateAccountTraffics(context.TODO(), nodeId, a); err != nil {
+			if err := controllers.Agent.UpdateAccountTraffics(context.TODO(), nodeId, a, isVIP); err != nil {
 				v.Logger.Error(err.Error())
 				continue
 			}
