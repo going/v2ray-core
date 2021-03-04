@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"v2ray.com/core/watchman/proto"
+	"github.com/xtls/xray-core/watchman/proto"
 
 	"github.com/jmoiron/sqlx"
-	"v2ray.com/core/watchman/database/connector"
-	"v2ray.com/core/watchman/utils"
+	"github.com/xtls/xray-core/watchman/database/connector"
+	"github.com/xtls/xray-core/watchman/utils"
 )
 
 var Agent = &agentsController{

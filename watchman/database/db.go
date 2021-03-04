@@ -3,8 +3,8 @@ package database
 import (
 	"context"
 
-	"v2ray.com/core/watchman/database/connector"
-	"v2ray.com/core/watchman/proto"
+	"github.com/xtls/xray-core/watchman/database/connector"
+	"github.com/xtls/xray-core/watchman/proto"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
