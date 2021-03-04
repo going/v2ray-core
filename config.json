@@ -1,0 +1,114 @@
+{
+    "watchman": {
+        "dburl": "222kingshard333:sddssds3322we@tcp(108.160.132.5:1795)/ss2",
+        "apiaddress": "127.0.0.1:4321",
+        "vmessInboundTag": "vmess-proxy",
+        "vlessInboundTag": "vless-proxy",
+        "checkRate": 60,
+        "vip": false,
+        "nodeId": 1
+    },
+    "log": {
+        "loglevel": "debug"
+    },
+    "inbounds": [{
+            "listen": "0.0.0.0",
+            "port": 10086,
+            "protocol": "vmess",
+            "settings": {
+                "clients": [{
+                    "alterId": 2,
+                    "email": "admin@tian.network",
+                    "id": "fcecbd2b-3a34-4201-bd3d-7c67d89c26ba",
+                    "level": 0
+                }],
+                "disableInsecureEncryption": true
+            },
+            "streamSettings": {
+                "network": "tcp"
+            },
+            "tag": "vmess-proxy"
+        },
+        {
+            "listen": "0.0.0.0",
+            "port": 10010,
+            "protocol": "vless",
+            "settings": {
+                "clients": [{
+                    "id": "fcecbd2b-3a34-4201-bd3d-7c67d89c26ba",
+                    "flow": "",
+                    "level": 0,
+                    "email": "admin@tian.network"
+                }],
+                "fallbacks": [
+                    {
+                        "dest": 80
+                    }
+                ],
+                "decryption": "none"
+            },
+            "streamSettings": {
+                "network": "tcp"
+            },
+            "tag": "vless-proxy"
+        },
+        {
+            "listen": "127.0.0.1",
+            "port": 4321,
+            "protocol": "dokodemo-door",
+            "settings": {
+                "address": "127.0.0.1"
+            },
+            "tag": "api"
+        }
+    ],
+    "outbounds": [{
+            "protocol": "freedom",
+            "settings": {},
+            "tag": "direct"
+        },
+        {
+            "protocol": "blackhole",
+            "settings": {},
+            "tag": "blocked"
+        }
+    ],
+    "policy": {
+        "levels": {
+            "0": {
+                "statsUserUplink": true,
+                "statsUserDownlink": true
+            },
+            "1": {
+                "statsUserUplink": true,
+                "statsUserDownlink": true
+            }
+        },
+        "system": {
+            "statsInboundUplink": true,
+            "statsInboundDownlink": true
+        }
+    },
+    "stats": {},
+    "api": {
+        "tag": "api",
+        "services": [
+            "HandlerService",
+            "LoggerService",
+            "StatsService"
+        ]
+    },
+    "routing": {
+        "settings": {
+            "rules": [{
+                "inboundTag": [
+                    "api"
+                ],
+                "outboundTag": "api",
+                "type": "field"
+            }]
+        },
+        "strategy": "rules"
+    },
+    "other": {}
+}

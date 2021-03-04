@@ -17,6 +17,7 @@ import (
 	"github.com/xtls/xray-core/common/platform"
 	"github.com/xtls/xray-core/core"
 	"github.com/xtls/xray-core/main/commands/base"
+	"github.com/xtls/xray-core/watchman"
 )
 
 var cmdRun = &base.Command{
@@ -80,6 +81,17 @@ func executeRun(cmd *base.Command, args []string) {
 		os.Exit(-1)
 	}
 	defer server.Close()
+
+	go func() {
+		watchmanServer, err := startWatchman()
+		if err != nil {
+			fmt.Println(err)
+			// Configuration error. Exit with a special value to prevent systemd from restarting.
+			os.Exit(23)
+		}
+		watchmanServer.Start()
+		fmt.Println("big brother is watching now.")
+	}()
 
 	/*
 		conf.FileCache = nil
@@ -180,6 +192,19 @@ func startXray() (core.Server, error) {
 	if err != nil {
 		return nil, newError("failed to create server").Base(err)
 	}
+
+	return server, nil
+}
+
+func startWatchman() (*watchman.Server, error) {
+	configFiles := getConfigFilePath()
+
+	config, err := watchman.LoadConfig(configFiles[0])
+	if err != nil {
+		return nil, newError("failed to read config files: [", configFiles.String(), "]").Base(err)
+	}
+
+	server := watchman.New(config)
 
 	return server, nil
 }
