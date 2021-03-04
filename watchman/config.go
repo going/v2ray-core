@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"io"
 
-	"v2ray.com/core/common/errors"
-	"v2ray.com/core/infra/conf"
-	json_reader "v2ray.com/core/infra/conf/json"
-	"v2ray.com/core/main/confloader"
+	"github.com/xtls/xray-core/common/errors"
+	"github.com/xtls/xray-core/infra/conf"
+	json_reader "github.com/xtls/xray-core/infra/conf/json"
+	"github.com/xtls/xray-core/main/confloader"
 )
 
 const API_ADDRESS string = "127.0.0.1:4321"
@@ -56,16 +56,16 @@ func LoadConfig(configFile string) (*Config, error) {
 
 func checkCfg(cfg *Config) error {
 
-	if cfg.v2rayConfig.Api == nil {
+	if cfg.v2rayConfig.API == nil {
 		return errors.New("Api must be set")
 	}
 
-	apiTag := cfg.v2rayConfig.Api.Tag
+	apiTag := cfg.v2rayConfig.API.Tag
 	if len(apiTag) == 0 {
 		return errors.New("Api tag can't be empty")
 	}
 
-	services := cfg.v2rayConfig.Api.Services
+	services := cfg.v2rayConfig.API.Services
 	if !InStr("HandlerService", services) {
 		return errors.New("Api service, HandlerService, must be enabled")
 	}

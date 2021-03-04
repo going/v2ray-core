@@ -3,8 +3,8 @@ package watchman
 import (
 	"time"
 
-	"v2ray.com/core/watchman/logging"
-	"v2ray.com/core/watchman/vclient"
+	"github.com/xtls/xray-core/watchman/logging"
+	"github.com/xtls/xray-core/watchman/vclient"
 )
 
 var logger = logging.GetInstance().Logger.Sugar()

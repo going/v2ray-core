@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"v2ray.com/core/watchman/proto"
+	"github.com/xtls/xray-core/watchman/proto"
 
+	"github.com/xtls/xray-core/app/stats/command"
 	"google.golang.org/grpc"
-	"v2ray.com/core/app/stats/command"
 )
 
 const (
