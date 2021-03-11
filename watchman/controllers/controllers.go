@@ -17,8 +17,8 @@ var Agent = &agentsController{
 }
 
 const (
-	updateUserTrafficStmt    = "UPDATE `user` SET ku = ku + %d, kd = kd + %d WHERE id = ? "
-	updateUserVIPTrafficStmt = "UPDATE `user` SET u = u + %d, d = d + %d WHERE id = ? "
+	updateUserTrafficStmt    = "UPDATE `user` SET u = u + %d, d = d + %d WHERE id = ? "
+	updateUserVIPTrafficStmt = "UPDATE `user` SET ku = ku + %d, kd = kd + %d WHERE id = ? "
 	userTrafficLogStmt       = "INSERT INTO `user_traffic_log` (`id`, `user_id`, `u`, `d`, `node_id`, `rate`, `traffic`, `log_time`) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?) "
 	userVIPTrafficLogStmt    = "INSERT INTO `user_traffic_log` (`id`, `user_id`, `ku`, `kd`, `node_id`, `rate`, `ktraffic`, `log_time`) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?) "
 	nodeOnlineLogStmt        = "INSERT INTO `ss_node_online_log` (`id`, `node_id`, `online_user`, `log_time`) VALUES (NULL, ?, ?, ?) "
