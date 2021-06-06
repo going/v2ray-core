@@ -17,6 +17,7 @@ var Agent = &agentsController{
 }
 
 const (
+	getTrafficRateStmt       = "SELECT traffic_rate FROM `ss_node` WHERE id = ? "
 	updateUserTrafficStmt    = "UPDATE `user` SET u = u + %d, d = d + %d WHERE id = ? "
 	updateUserVIPTrafficStmt = "UPDATE `user` SET ku = ku + %d, kd = kd + %d WHERE id = ? "
 	userTrafficLogStmt       = "INSERT INTO `user_traffic_log` (`id`, `user_id`, `u`, `d`, `node_id`, `rate`, `traffic`, `log_time`) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?) "
@@ -44,6 +45,15 @@ func (c *agentsController) UpdateAccountTraffics(ctx context.Context, nodeId int
 	return c.Invoke(ctx, func(tx *sqlx.Tx) (err error) {
 
 		now := time.Now().Unix()
+
+		var traffic_rate float64
+		if err := c.Invoke(ctx, func(db connector.Q) error {
+			return db.GetContext(ctx, &traffic_rate, getTrafficRateStmt, nodeId) // nolint: errcheck
+		}); err != nil {
+		}
+
+		account.Traffics.Downloads = int64(float64(account.Traffics.Downloads) * traffic_rate)
+		account.Traffics.Uploads = int64(float64(account.Traffics.Uploads) * traffic_rate)
 
 		if isVIP {
 			tx.MustExec(tx.Rebind(fmt.Sprintf(updateUserVIPTrafficStmt, account.Traffics.Uploads, account.Traffics.Downloads)), account.ID) // nolint: errcheck
