@@ -58,11 +58,11 @@ func (c *agentsController) UpdateAccountTraffics(ctx context.Context, nodeId int
 		if isVIP {
 			tx.MustExec(tx.Rebind(fmt.Sprintf(updateUserVIPTrafficStmt, account.Traffics.Uploads, account.Traffics.Downloads)), account.ID) // nolint: errcheck
 
-			tx.MustExec(tx.Rebind(userVIPTrafficLogStmt), account.ID, account.Traffics.Uploads, account.Traffics.Downloads, nodeId, 1, utils.GetDetectedSize(account.Traffics.Uploads+account.Traffics.Downloads), now) // nolint: errcheck
+			tx.MustExec(tx.Rebind(userVIPTrafficLogStmt), account.ID, account.Traffics.Uploads, account.Traffics.Downloads, nodeId, traffic_rate, utils.GetDetectedSize(account.Traffics.Uploads+account.Traffics.Downloads), now) // nolint: errcheck
 		} else {
 			tx.MustExec(tx.Rebind(fmt.Sprintf(updateUserTrafficStmt, account.Traffics.Uploads, account.Traffics.Downloads)), account.ID) // nolint: errcheck
 
-			tx.MustExec(tx.Rebind(userTrafficLogStmt), account.ID, account.Traffics.Uploads, account.Traffics.Downloads, nodeId, 1, utils.GetDetectedSize(account.Traffics.Uploads+account.Traffics.Downloads), now) // nolint: errcheck
+			tx.MustExec(tx.Rebind(userTrafficLogStmt), account.ID, account.Traffics.Uploads, account.Traffics.Downloads, nodeId, traffic_rate, utils.GetDetectedSize(account.Traffics.Uploads+account.Traffics.Downloads), now) // nolint: errcheck
 		}
 
 		tx.MustExec(tx.Rebind(nodeOnlineLogStmt), nodeId, account.Traffics.Clients, now) // nolint: errcheck
