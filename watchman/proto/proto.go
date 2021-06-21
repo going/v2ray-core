@@ -1,11 +1,12 @@
 package proto
 
 type UserModel struct {
-	ID       int64           `db:"id"`
-	Email    string          `db:"email"`
-	UUID     string          `db:"uuid"`
-	AlterID  uint32          `db:"AlterId"`
-	Traffics *UserTrafficLog `db:"-"`
+	ID          int64           `db:"id"`
+	Email       string          `db:"email"`
+	UUID        string          `db:"uuid"`
+	AlterID     uint32          `db:"AlterId"`
+	TrafficRate float64         `db:"traffic_rate"`
+	Traffics    *UserTrafficLog `db:"-"`
 }
 
 type UserTrafficLog struct {

@@ -17,7 +17,6 @@ var Agent = &agentsController{
 }
 
 const (
-	getTrafficRateStmt       = "SELECT traffic_rate FROM `ss_node` WHERE id = ? "
 	updateUserTrafficStmt    = "UPDATE `user` SET u = u + %d, d = d + %d WHERE id = ? "
 	updateUserVIPTrafficStmt = "UPDATE `user` SET ku = ku + %d, kd = kd + %d WHERE id = ? "
 	userTrafficLogStmt       = "INSERT INTO `user_traffic_log` (`id`, `user_id`, `u`, `d`, `node_id`, `rate`, `traffic`, `log_time`) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?) "
@@ -34,7 +33,7 @@ type agentsController struct {
 
 // List Address interface{} by input
 func (c *agentsController) GetAccounts(ctx context.Context, nodeId int64, outputs interface{}) error {
-	stmt := "SELECT u.id, u.email, u.uuid, u.AlterId from user u WHERE u.enable = 1 AND u.uuid IS NOT NULL AND u.class_expire >= CURRENT_TIMESTAMP AND u.transfer_enable > 0 AND class >= (SELECT node_class FROM ss_node WHERE id = ?);"
+	stmt := "SELECT u.id, u.email, u.uuid, u.AlterId, s.traffic_rate from user u, ss_node s WHERE s.id = ? AND u.enable = 1 AND u.uuid IS NOT NULL AND u.class_expire >= CURRENT_TIMESTAMP AND u.transfer_enable > 0 AND u.class >= s.node_class;"
 	return c.Invoke(ctx, func(db connector.Q) error {
 		return db.SelectContext(ctx, outputs, stmt, nodeId) // nolint: errcheck
 	})
@@ -46,23 +45,17 @@ func (c *agentsController) UpdateAccountTraffics(ctx context.Context, nodeId int
 
 		now := time.Now().Unix()
 
-		var traffic_rate float64
-		if err := c.Invoke(ctx, func(db connector.Q) error {
-			return db.GetContext(ctx, &traffic_rate, getTrafficRateStmt, nodeId) // nolint: errcheck
-		}); err != nil {
-		}
-
-		account.Traffics.Downloads = int64(float64(account.Traffics.Downloads) * traffic_rate)
-		account.Traffics.Uploads = int64(float64(account.Traffics.Uploads) * traffic_rate)
+		account.Traffics.Downloads = int64(float64(account.Traffics.Downloads) * account.TrafficRate)
+		account.Traffics.Uploads = int64(float64(account.Traffics.Uploads) * account.TrafficRate)
 
 		if isVIP {
 			tx.MustExec(tx.Rebind(fmt.Sprintf(updateUserVIPTrafficStmt, account.Traffics.Uploads, account.Traffics.Downloads)), account.ID) // nolint: errcheck
 
-			tx.MustExec(tx.Rebind(userVIPTrafficLogStmt), account.ID, account.Traffics.Uploads, account.Traffics.Downloads, nodeId, traffic_rate, utils.GetDetectedSize(account.Traffics.Uploads+account.Traffics.Downloads), now) // nolint: errcheck
+			tx.MustExec(tx.Rebind(userVIPTrafficLogStmt), account.ID, account.Traffics.Uploads, account.Traffics.Downloads, nodeId, account.TrafficRate, utils.GetDetectedSize(account.Traffics.Uploads+account.Traffics.Downloads), now) // nolint: errcheck
 		} else {
 			tx.MustExec(tx.Rebind(fmt.Sprintf(updateUserTrafficStmt, account.Traffics.Uploads, account.Traffics.Downloads)), account.ID) // nolint: errcheck
 
-			tx.MustExec(tx.Rebind(userTrafficLogStmt), account.ID, account.Traffics.Uploads, account.Traffics.Downloads, nodeId, traffic_rate, utils.GetDetectedSize(account.Traffics.Uploads+account.Traffics.Downloads), now) // nolint: errcheck
+			tx.MustExec(tx.Rebind(userTrafficLogStmt), account.ID, account.Traffics.Uploads, account.Traffics.Downloads, nodeId, account.TrafficRate, utils.GetDetectedSize(account.Traffics.Uploads+account.Traffics.Downloads), now) // nolint: errcheck
 		}
 
 		tx.MustExec(tx.Rebind(nodeOnlineLogStmt), nodeId, account.Traffics.Clients, now) // nolint: errcheck
