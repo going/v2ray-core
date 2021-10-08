@@ -129,7 +129,7 @@ func (v *VClient) Sync(nodeId int64, isVIP bool) error {
 
 func (v *VClient) loadAccounts(nodeId int64, isVIP bool) []*proto.UserModel {
 	var accounts []*proto.UserModel
-	if err := controllers.Agent.GetAccounts(context.TODO(), nodeId, &accounts, isVIP); err != nil {
+	if err := controllers.Agent.GetAccounts(context.TODO(), nodeId, isVIP, &accounts); err != nil {
 		v.Logger.Error(err.Error())
 	}
 	return accounts
