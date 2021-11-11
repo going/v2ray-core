@@ -90,7 +90,7 @@ func (v *VClient) InitServices(nodeId int64, vmessInboundTag, vlessInboundTag st
 	if v.VlessManager == nil && v.VlessInboundTag != "" {
 		v.Logger.Debug("start vless manage service")
 		v.VlessManager = NewHandlerServiceClient(v.Conn, v.VlessInboundTag, true)
-		v.AddVmessInbound(uint16(nodeInfo.VlessPort))
+		v.AddVlessInbound(uint16(nodeInfo.VlessPort))
 	}
 
 	return nil
@@ -126,17 +126,17 @@ func (v *VClient) AddVmessInbound(port uint16) error {
 	if err := v.VmessManager.AddVmessInbound(port, "0.0.0.0", streamSetting); err != nil {
 		return err
 	} else {
-		v.Logger.Debug(fmt.Sprintf("Successfully add MAIN INBOUND %s port %d", "0.0.0.0", port))
+		v.Logger.Debug(fmt.Sprintf("Successfully add Vmess INBOUND %s port %d", "0.0.0.0", port))
 	}
 	return nil
 }
 
 func (v *VClient) AddVlessInbound(port uint16) error {
 	streamSetting := &internet.StreamConfig{}
-	if err := v.VlessManager.AddVmessInbound(port, "0.0.0.0", streamSetting); err != nil {
+	if err := v.VlessManager.AddVlessInbound(port, "0.0.0.0", streamSetting); err != nil {
 		return err
 	} else {
-		v.Logger.Debug(fmt.Sprintf("Successfully add MAIN INBOUND %s port %d", "0.0.0.0", port))
+		v.Logger.Debug(fmt.Sprintf("Successfully add Vless INBOUND %s port %d", "0.0.0.0", port))
 	}
 	return nil
 }
