@@ -53,13 +53,17 @@ func Connect(address string, timeoutDuration time.Duration) (*VClient, error) {
 	}
 }
 
-func (v *VClient) InitServices(vmessInboundTag, vlessInboundTag string) error {
+func (v *VClient) InitServices(nodeId int64, vmessInboundTag, vlessInboundTag string) error {
 	if vmessInboundTag != "" {
 		v.VmessInboundTag = vmessInboundTag
+	} else {
+		v.VmessInboundTag = DefaultVmessInboundTag
 	}
 
 	if vlessInboundTag != "" {
 		v.VlessInboundTag = vlessInboundTag
+	} else {
+		v.VlessInboundTag = DefaultVmessInboundTag
 	}
 
 	if v.Conn == nil {
@@ -71,26 +75,36 @@ func (v *VClient) InitServices(vmessInboundTag, vlessInboundTag string) error {
 		v.Stats = NewStatsServiceClient(v.Conn)
 	}
 
+	nodeInfo, err := v.GetNode(nodeId)
+	if err != nil {
+		v.Logger.Error(err.Error())
+		return err
+	}
+
 	if v.VmessManager == nil && v.VmessInboundTag != "" {
 		v.Logger.Debug("start vmess manage service")
 		v.VmessManager = NewHandlerServiceClient(v.Conn, v.VmessInboundTag, false)
+		v.AddVmessInbound(uint16(nodeInfo.Port))
 	}
 
 	if v.VlessManager == nil && v.VlessInboundTag != "" {
 		v.Logger.Debug("start vless manage service")
 		v.VlessManager = NewHandlerServiceClient(v.Conn, v.VlessInboundTag, true)
+		v.AddVmessInbound(uint16(nodeInfo.VlessPort))
 	}
 
 	return nil
 }
 
-func (v *VClient) Startup(dbUrl string, nodeId, checkRate int64, isVIP bool) error {
+func (v *VClient) Init(dbUrl string) {
 	database.Connect(context.TODO(), v.Logger, &proto.DBConfig{
 		Master:  dbUrl,
 		MaxIdle: 10,
 		MaxOpen: 10,
 	})
+}
 
+func (v *VClient) Startup(nodeId, checkRate int64, isVIP bool) error {
 	if err := v.Sync(nodeId, isVIP); err != nil {
 		v.Logger.Error(err.Error())
 	}
@@ -107,7 +121,7 @@ func (v *VClient) Startup(dbUrl string, nodeId, checkRate int64, isVIP bool) err
 	return nil
 }
 
-func (v *VClient) AddMainInbound(port uint16) error {
+func (v *VClient) AddVmessInbound(port uint16) error {
 	streamSetting := &internet.StreamConfig{}
 	if err := v.VmessManager.AddVmessInbound(port, "0.0.0.0", streamSetting); err != nil {
 		return err
@@ -115,6 +129,30 @@ func (v *VClient) AddMainInbound(port uint16) error {
 		v.Logger.Debug(fmt.Sprintf("Successfully add MAIN INBOUND %s port %d", "0.0.0.0", port))
 	}
 	return nil
+}
+
+func (v *VClient) AddVlessInbound(port uint16) error {
+	streamSetting := &internet.StreamConfig{}
+	if err := v.VlessManager.AddVmessInbound(port, "0.0.0.0", streamSetting); err != nil {
+		return err
+	} else {
+		v.Logger.Debug(fmt.Sprintf("Successfully add MAIN INBOUND %s port %d", "0.0.0.0", port))
+	}
+	return nil
+}
+
+func (v *VClient) GetNode(nodeId int64) (*proto.NodeModel, error) {
+
+	var node proto.NodeModel
+
+	if err := controllers.Agent.GetNode(context.TODO(), nodeId, &node); err != nil {
+		v.Logger.Error(err.Error())
+		return nil, err
+	}
+
+	v.Logger.Info("Node Info:", zap.Int64("id", node.ID), zap.String("name", node.Name), zap.String("server", node.Server), zap.Int64("port", node.Port), zap.Int64("vless port", node.VlessPort), zap.Int64("node class", node.NodeClass), zap.Float64("traffic rate", node.TrafficRate))
+
+	return &node, nil
 }
 
 func (v *VClient) Sync(nodeId int64, isVIP bool) error {

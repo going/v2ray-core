@@ -20,11 +20,17 @@ func (w *Server) Start() {
 		logger.Fatal(err.Error())
 	}
 	logger.Debug("watchman connected to v2ray")
-	if err := vc.InitServices(w.Config.VmessInboundTag, w.Config.VlessInboundTag); err != nil {
+
+	vc.Init(w.Config.DBUrl)
+
+	if err := vc.InitServices(w.Config.NodeID, w.Config.VmessInboundTag, w.Config.VlessInboundTag); err != nil {
 		logger.Fatal(err.Error())
 	}
+
+	time.Sleep(time.Millisecond * 10)
+
 	logger.Debug("watchman services start")
-	if err := vc.Startup(w.Config.DBUrl, w.Config.NodeID, w.Config.CheckRate, w.Config.VIP); err != nil {
+	if err := vc.Startup(w.Config.NodeID, w.Config.CheckRate, w.Config.VIP); err != nil {
 		logger.Fatal(err.Error())
 	}
 }

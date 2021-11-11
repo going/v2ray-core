@@ -12,8 +12,9 @@ import (
 	"github.com/xtls/xray-core/core"
 	"github.com/xtls/xray-core/proxy/shadowsocks"
 	"github.com/xtls/xray-core/proxy/vless"
+	vlessInbound "github.com/xtls/xray-core/proxy/vless/inbound"
 	"github.com/xtls/xray-core/proxy/vmess"
-	"github.com/xtls/xray-core/proxy/vmess/inbound"
+	vmessInbound "github.com/xtls/xray-core/proxy/vmess/inbound"
 	"github.com/xtls/xray-core/transport/internet"
 	"github.com/xtls/xray-core/transport/internet/headers/noop"
 	"github.com/xtls/xray-core/transport/internet/headers/srtp"
@@ -136,7 +137,7 @@ func (h *HandlerServiceClient) AddVmessInbound(port uint16, address string, stre
 				Listen:         net.NewIPOrDomain(net.ParseAddress(address)),
 				StreamSettings: streamsetting,
 			}),
-			ProxySettings: serial.ToTypedMessage(&inbound.Config{
+			ProxySettings: serial.ToTypedMessage(&vmessInbound.Config{
 				User: []*protocol.User{
 					{
 						Level: 0,
@@ -144,6 +145,32 @@ func (h *HandlerServiceClient) AddVmessInbound(port uint16, address string, stre
 						Account: serial.ToTypedMessage(&vmess.Account{
 							Id:      protocol.NewID(uuid.New()).String(),
 							AlterId: 2,
+						}),
+					},
+				},
+			}),
+		},
+	}
+	return h.AddInbound(addInboundRequest)
+}
+
+// different type inbounds
+func (h *HandlerServiceClient) AddVlessInbound(port uint16, address string, streamsetting *internet.StreamConfig) error {
+	addInboundRequest := &command.AddInboundRequest{
+		Inbound: &core.InboundHandlerConfig{
+			Tag: h.InboundTag,
+			ReceiverSettings: serial.ToTypedMessage(&proxyman.ReceiverConfig{
+				PortRange:      net.SinglePortRange(net.Port(port)),
+				Listen:         net.NewIPOrDomain(net.ParseAddress(address)),
+				StreamSettings: streamsetting,
+			}),
+			ProxySettings: serial.ToTypedMessage(&vlessInbound.Config{
+				Clients: []*protocol.User{
+					{
+						Level: 0,
+						Email: "admin@tian.network",
+						Account: serial.ToTypedMessage(&vless.Account{
+							Id: protocol.NewID(uuid.New()).String(),
 						}),
 					},
 				},

@@ -22,3 +22,13 @@ type DBConfig struct {
 	MaxOpen int    `yaml:"max_open"`
 	MaxIdle int    `yaml:"max_idle"`
 }
+
+type NodeModel struct {
+	ID          int64   `db:"id"`
+	Name        string  `db:"name"`
+	Server      string  `db:"server"`
+	NodeClass   int64   `db:"node_class"`
+	Port        int64   `db:"port"`
+	VlessPort   int64   `db:"vlessport"`
+	TrafficRate float64 `db:"traffic_rate"`
+}
