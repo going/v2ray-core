@@ -87,13 +87,13 @@ func checkCfg(cfg *Config) error {
 		}
 	}
 
-	if inbound := getInboundConfigByTag(cfg.VmessInboundTag, cfg.v2rayConfig.InboundConfigs); inbound == nil {
-		return errors.New(fmt.Sprintf("Miss an inbound tagged %s", cfg.VmessInboundTag))
-	}
+	// if inbound := getInboundConfigByTag(cfg.VmessInboundTag, cfg.v2rayConfig.InboundConfigs); inbound == nil {
+	// 	return errors.New(fmt.Sprintf("Miss an inbound tagged %s", cfg.VmessInboundTag))
+	// }
 
-	if inbound := getInboundConfigByTag(cfg.VlessInboundTag, cfg.v2rayConfig.InboundConfigs); inbound == nil {
-		return errors.New(fmt.Sprintf("Miss an inbound tagged %s", cfg.VlessInboundTag))
-	}
+	// if inbound := getInboundConfigByTag(cfg.VlessInboundTag, cfg.v2rayConfig.InboundConfigs); inbound == nil {
+	// 	return errors.New(fmt.Sprintf("Miss an inbound tagged %s", cfg.VlessInboundTag))
+	// }
 
 	return nil
 }

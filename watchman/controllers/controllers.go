@@ -33,10 +33,10 @@ type agentsController struct {
 
 // List Address interface{} by input
 func (c *agentsController) GetNode(ctx context.Context, nodeId int64, outputs interface{}) error {
-	stmt := "SELECT * from ss_node  WHERE id = ? and type = 0;"
+	stmt := "SELECT * from ss_node  WHERE id = ?;"
 
 	return c.Invoke(ctx, func(db connector.Q) error {
-		return db.SelectContext(ctx, outputs, stmt, nodeId) // nolint: errcheck
+		return db.GetContext(ctx, outputs, stmt, nodeId) // nolint: errcheck
 	})
 }
 

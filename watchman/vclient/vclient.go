@@ -81,13 +81,13 @@ func (v *VClient) InitServices(nodeId int64, vmessInboundTag, vlessInboundTag st
 		return err
 	}
 
-	if v.VmessManager == nil && v.VmessInboundTag != "" {
+	if v.VmessManager == nil && v.VmessInboundTag != "" && nodeInfo.Port > 0 {
 		v.Logger.Debug("start vmess manage service")
 		v.VmessManager = NewHandlerServiceClient(v.Conn, v.VmessInboundTag, false)
 		v.AddVmessInbound(uint16(nodeInfo.Port))
 	}
 
-	if v.VlessManager == nil && v.VlessInboundTag != "" {
+	if v.VlessManager == nil && v.VlessInboundTag != "" && nodeInfo.VlessPort > 0 {
 		v.Logger.Debug("start vless manage service")
 		v.VlessManager = NewHandlerServiceClient(v.Conn, v.VlessInboundTag, true)
 		v.AddVlessInbound(uint16(nodeInfo.VlessPort))
