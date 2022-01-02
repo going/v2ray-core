@@ -82,7 +82,7 @@ func checkCfg(cfg *Config) error {
 	} else if apiInbound.Protocol != "dokodemo-door" {
 		return errors.New(fmt.Sprintf("The protocol of inbound tagged %s must be \"dokodemo-door\"", apiTag))
 	} else {
-		if apiInbound.ListenOn == nil || apiInbound.PortRange == nil {
+		if apiInbound.ListenOn == nil || apiInbound.PortList == nil {
 			return errors.New(fmt.Sprintf("Fields, \"listen\" and \"port\", of inbound tagged %s must be set", apiTag))
 		}
 	}
