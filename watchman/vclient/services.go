@@ -133,7 +133,7 @@ func (h *HandlerServiceClient) AddVmessInbound(port uint16, address string, stre
 		Inbound: &core.InboundHandlerConfig{
 			Tag: h.InboundTag,
 			ReceiverSettings: serial.ToTypedMessage(&proxyman.ReceiverConfig{
-				PortRange:      net.SinglePortRange(net.Port(port)),
+				PortList:       &net.PortList{Range: []*net.PortRange{net.SinglePortRange(net.Port(port))}},
 				Listen:         net.NewIPOrDomain(net.ParseAddress(address)),
 				StreamSettings: streamsetting,
 			}),
@@ -160,7 +160,7 @@ func (h *HandlerServiceClient) AddVlessInbound(port uint16, address string, stre
 		Inbound: &core.InboundHandlerConfig{
 			Tag: h.InboundTag,
 			ReceiverSettings: serial.ToTypedMessage(&proxyman.ReceiverConfig{
-				PortRange:      net.SinglePortRange(net.Port(port)),
+				PortList:       &net.PortList{Range: []*net.PortRange{net.SinglePortRange(net.Port(port))}},
 				Listen:         net.NewIPOrDomain(net.ParseAddress(address)),
 				StreamSettings: streamsetting,
 			}),
