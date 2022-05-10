@@ -18,6 +18,7 @@ type Config struct {
 	VIP             bool   `json:"vip"`
 	NodeID          int64  `json:"nodeId"`
 	CheckRate       int64  `json:"checkRate"`
+	VmessRelayPort  int64  `json:"vmessRelayPort"`
 	DBUrl           string `json:"dburl"`
 	ApiAddress      string `json:"apiaddress"`
 	VmessInboundTag string `json:"vmessInboundTag"`

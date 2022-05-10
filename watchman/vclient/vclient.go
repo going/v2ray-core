@@ -82,10 +82,10 @@ func (v *VClient) InitServices(nodeId int64, vmessInboundTag, vlessInboundTag st
 		return err
 	}
 
-	if v.VmessManager == nil && v.VmessInboundTag != "" {
+	if v.VmessManager == nil {
 		v.Logger.Debug("start vmess local manage service")
 		v.VmessManager = NewHandlerServiceClient(v.Conn, DefaultVmessRelayInboundTag, false)
-		v.AddVmessLocalInbound(4321)
+		v.AddVmessLocalInbound(5454)
 	}
 
 	if v.VmessManager == nil && v.VmessInboundTag != "" && nodeInfo.Port > 0 {
