@@ -17,8 +17,9 @@ import (
 )
 
 const (
-	DefaultVmessInboundTag = "vmess-proxy"
-	DefaultVlessInboundTag = "vless-proxy"
+	DefaultVmessRelayInboundTag = "vmess-proxy-relay"
+	DefaultVmessInboundTag      = "vmess-proxy"
+	DefaultVlessInboundTag      = "vless-proxy"
 )
 
 type VClient struct {
@@ -81,6 +82,12 @@ func (v *VClient) InitServices(nodeId int64, vmessInboundTag, vlessInboundTag st
 		return err
 	}
 
+	if v.VmessManager == nil && v.VmessInboundTag != "" {
+		v.Logger.Debug("start vmess local manage service")
+		v.VmessManager = NewHandlerServiceClient(v.Conn, DefaultVmessRelayInboundTag, false)
+		v.AddVmessLocalInbound(4321)
+	}
+
 	if v.VmessManager == nil && v.VmessInboundTag != "" && nodeInfo.Port > 0 {
 		v.Logger.Debug("start vmess manage service")
 		v.VmessManager = NewHandlerServiceClient(v.Conn, v.VmessInboundTag, false)
@@ -118,6 +125,16 @@ func (v *VClient) Startup(nodeId, checkRate int64, isVIP bool) error {
 		}
 	}
 
+	return nil
+}
+
+func (v *VClient) AddVmessLocalInbound(port uint16) error {
+	streamSetting := &internet.StreamConfig{}
+	if err := v.VmessManager.AddVmessInbound(port, "127.0.0.1", streamSetting); err != nil {
+		return err
+	} else {
+		v.Logger.Debug(fmt.Sprintf("Successfully add Vmess INBOUND %s port %d", "127.0.0.1", port))
+	}
 	return nil
 }
 
