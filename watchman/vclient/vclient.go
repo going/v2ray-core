@@ -23,14 +23,15 @@ const (
 )
 
 type VClient struct {
-	Conn            *grpc.ClientConn
-	Stats           *StatsServiceClient
-	VmessManager    *HandlerServiceClient
-	VlessManager    *HandlerServiceClient
-	Logger          *zap.Logger
-	Accounts        map[string]*proto.UserModel
-	VmessInboundTag string
-	VlessInboundTag string
+	Conn              *grpc.ClientConn
+	Stats             *StatsServiceClient
+	VmessRelayManager *HandlerServiceClient
+	VmessManager      *HandlerServiceClient
+	VlessManager      *HandlerServiceClient
+	Logger            *zap.Logger
+	Accounts          map[string]*proto.UserModel
+	VmessInboundTag   string
+	VlessInboundTag   string
 }
 
 func Connect(address string, timeoutDuration time.Duration) (*VClient, error) {
@@ -82,14 +83,14 @@ func (v *VClient) InitServices(nodeId int64, vmessInboundTag, vlessInboundTag st
 		return err
 	}
 
-	if v.VmessManager == nil {
-		v.Logger.Debug("start vmess local manage service")
-		v.VmessManager = NewHandlerServiceClient(v.Conn, DefaultVmessRelayInboundTag, false)
+	if v.VmessRelayManager == nil {
+		v.Logger.Debug("start vmess relay manage service", zap.Int64("port", 5454))
+		v.VmessRelayManager = NewHandlerServiceClient(v.Conn, DefaultVmessRelayInboundTag, false)
 		v.AddVmessLocalInbound(5454)
 	}
 
 	if v.VmessManager == nil && v.VmessInboundTag != "" && nodeInfo.Port > 0 {
-		v.Logger.Debug("start vmess manage service")
+		v.Logger.Debug("start vmess manage service, ", zap.Int64("port", nodeInfo.Port))
 		v.VmessManager = NewHandlerServiceClient(v.Conn, v.VmessInboundTag, false)
 		v.AddVmessInbound(uint16(nodeInfo.Port))
 	}
@@ -130,7 +131,7 @@ func (v *VClient) Startup(nodeId, checkRate int64, isVIP bool) error {
 
 func (v *VClient) AddVmessLocalInbound(port uint16) error {
 	streamSetting := &internet.StreamConfig{}
-	if err := v.VmessManager.AddVmessInbound(port, "127.0.0.1", streamSetting); err != nil {
+	if err := v.VmessRelayManager.AddVmessInbound(port, "127.0.0.1", streamSetting); err != nil {
 		return err
 	} else {
 		v.Logger.Debug(fmt.Sprintf("Successfully add Vmess INBOUND %s port %d", "127.0.0.1", port))
@@ -223,6 +224,12 @@ func (v *VClient) syncAccounts(nodeId int64, isVIP bool) {
 			v.Logger.Info("新增Vmess用户", zap.String("email", user.Email), zap.String("uuid", user.UUID))
 		}
 
+		if v.VmessRelayManager != nil {
+			if err := v.VmessRelayManager.AddUser(user); err != nil {
+				v.Logger.Error(err.Error())
+			}
+		}
+
 		if v.VlessManager != nil {
 			if err := v.VlessManager.AddUser(user); err != nil {
 				v.Logger.Error(err.Error())
@@ -240,6 +247,12 @@ func (v *VClient) syncAccounts(nodeId int64, isVIP bool) {
 			}
 		}
 
+		if v.VmessRelayManager != nil {
+			if err := v.VmessRelayManager.DelUser(user.Email); err != nil {
+				v.Logger.Error(err.Error())
+			}
+		}
+
 		if v.VlessManager != nil {
 			if err := v.VlessManager.DelUser(user.Email); err != nil {
 				v.Logger.Error(err.Error())
@@ -252,6 +265,12 @@ func (v *VClient) syncAccounts(nodeId int64, isVIP bool) {
 				v.Logger.Error(err.Error())
 			}
 			v.Logger.Info("修改Vmess用户", zap.String("email", user.Email), zap.String("uuid", user.UUID))
+		}
+
+		if v.VmessRelayManager != nil {
+			if err := v.VmessRelayManager.AddUser(user); err != nil {
+				v.Logger.Error(err.Error())
+			}
 		}
 
 		if v.VlessManager != nil {
@@ -271,6 +290,12 @@ func (v *VClient) syncAccounts(nodeId int64, isVIP bool) {
 				v.Logger.Error(err.Error())
 			}
 			v.Logger.Info("删除Vmess用户", zap.String("email", ru.Email), zap.String("uuid", ru.UUID))
+		}
+
+		if v.VmessRelayManager != nil {
+			if err := v.VmessRelayManager.DelUser(ru.Email); err != nil {
+				v.Logger.Error(err.Error())
+			}
 		}
 
 		if v.VlessManager != nil {
