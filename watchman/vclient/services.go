@@ -83,7 +83,7 @@ func (h *HandlerServiceClient) AlterInbound(req *command.AlterInboundRequest) er
 	return err
 }
 
-//streaming
+// streaming
 func GetKcpStreamConfig(headkey string) *internet.StreamConfig {
 	var streamsetting internet.StreamConfig
 	head, _ := KcpHeadMap["noop"]
@@ -143,8 +143,7 @@ func (h *HandlerServiceClient) AddVmessInbound(port uint16, address string, stre
 						Level: 0,
 						Email: "admin@tian.network",
 						Account: serial.ToTypedMessage(&vmess.Account{
-							Id:      protocol.NewID(uuid.New()).String(),
-							AlterId: 2,
+							Id: protocol.NewID(uuid.New()).String(),
 						}),
 					},
 				},
@@ -155,7 +154,7 @@ func (h *HandlerServiceClient) AddVmessInbound(port uint16, address string, stre
 }
 
 // different type inbounds
-func (h *HandlerServiceClient) AddVlessInbound(port uint16, address string, streamsetting *internet.StreamConfig) error {
+func (h *HandlerServiceClient) AddVlessInbound(port uint16, address string, streamsetting *internet.StreamConfig, enableReality ...bool) error {
 	addInboundRequest := &command.AddInboundRequest{
 		Inbound: &core.InboundHandlerConfig{
 			Tag: h.InboundTag,
@@ -177,6 +176,20 @@ func (h *HandlerServiceClient) AddVlessInbound(port uint16, address string, stre
 			}),
 		},
 	}
+	if len(enableReality) > 0 && enableReality[0] {
+		addInboundRequest.Inbound.ProxySettings = serial.ToTypedMessage(&vlessInbound.Config{
+			Clients: []*protocol.User{
+				{
+					Level: 0,
+					Email: "admin@tian.network",
+					Account: serial.ToTypedMessage(&vless.Account{
+						Id:   protocol.NewID(uuid.New()).String(),
+						Flow: "xtls-rprx-vision",
+					}),
+				},
+			},
+		})
+	}
 	return h.AddInbound(addInboundRequest)
 }
 
@@ -197,8 +210,7 @@ func (h *HandlerServiceClient) ConvertVmessUser(userModel *proto.UserModel) *pro
 		Level: 0,
 		Email: userModel.Email,
 		Account: serial.ToTypedMessage(&vmess.Account{
-			Id:      userModel.UUID,
-			AlterId: userModel.AlterID,
+			Id: userModel.UUID,
 			SecuritySettings: &protocol.SecurityConfig{
 				Type: protocol.SecurityType_AUTO,
 			},

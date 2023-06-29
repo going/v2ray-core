@@ -31,4 +31,5 @@ type NodeModel struct {
 	Port        int64   `db:"port"`
 	VlessPort   int64   `db:"vlessport"`
 	TrafficRate float64 `db:"traffic_rate"`
+	Reality     bool    `db:"reality"`
 }

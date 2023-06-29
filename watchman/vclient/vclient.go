@@ -2,10 +2,13 @@ package vclient
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
+	"github.com/xtls/xray-core/transport/internet/reality"
 	"time"
 
+	"github.com/xtls/xray-core/common/serial"
 	"github.com/xtls/xray-core/transport/internet"
 	"github.com/xtls/xray-core/watchman/controllers"
 	"github.com/xtls/xray-core/watchman/database"
@@ -65,7 +68,7 @@ func (v *VClient) InitServices(nodeId int64, vmessInboundTag, vlessInboundTag st
 	if vlessInboundTag != "" {
 		v.VlessInboundTag = vlessInboundTag
 	} else {
-		v.VlessInboundTag = DefaultVmessInboundTag
+		v.VlessInboundTag = DefaultVlessInboundTag
 	}
 
 	if v.Conn == nil {
@@ -98,7 +101,7 @@ func (v *VClient) InitServices(nodeId int64, vmessInboundTag, vlessInboundTag st
 	if v.VlessManager == nil && v.VlessInboundTag != "" && nodeInfo.VlessPort > 0 {
 		v.Logger.Debug("start vless manage service")
 		v.VlessManager = NewHandlerServiceClient(v.Conn, v.VlessInboundTag, true)
-		v.AddVlessInbound(uint16(nodeInfo.VlessPort))
+		v.AddVlessInbound(uint16(nodeInfo.VlessPort), nodeInfo.Reality)
 	}
 
 	return nil
@@ -149,9 +152,35 @@ func (v *VClient) AddVmessInbound(port uint16) error {
 	return nil
 }
 
-func (v *VClient) AddVlessInbound(port uint16) error {
+func (v *VClient) AddVlessInbound(port uint16, enableReality ...bool) error {
 	streamSetting := &internet.StreamConfig{}
-	if err := v.VlessManager.AddVlessInbound(port, "0.0.0.0", streamSetting); err != nil {
+	if len(enableReality) > 0 && enableReality[0] {
+		privateKey, err := base64.RawURLEncoding.DecodeString("qAkx3oR3RzqPDiR9YFiFt8AX9oztDI-heKHkU0Spd2o")
+		if err != nil {
+			return err
+		}
+		publicKey, err := base64.RawURLEncoding.DecodeString("3Y-4IBTAyOtzLq6O5yhF-YwnwsUNYt-OzxZK5RwpXW0")
+		if err != nil {
+			return err
+		}
+		streamSetting = &internet.StreamConfig{
+			ProtocolName: "tcp",
+			SecuritySettings: []*serial.TypedMessage{
+				serial.ToTypedMessage(&reality.Config{
+					Show: false,
+					Dest: "cdn-dynmedia-1.microsoft.com:443",
+					Xver: 0,
+					ServerNames: []string{
+						"cdn-dynmedia-1.microsoft.com",
+					},
+					PrivateKey:  privateKey,
+					PublicKey:   publicKey,
+					MaxTimeDiff: 70000,
+				}),
+			},
+		}
+	}
+	if err := v.VlessManager.AddVlessInbound(port, "0.0.0.0", streamSetting, enableReality...); err != nil {
 		return err
 	} else {
 		v.Logger.Debug(fmt.Sprintf("Successfully add Vless INBOUND %s port %d", "0.0.0.0", port))
