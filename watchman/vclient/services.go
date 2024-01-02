@@ -2,6 +2,7 @@ package vclient
 
 import (
 	"context"
+	"go.uber.org/zap"
 
 	"github.com/xtls/xray-core/app/proxyman"
 	"github.com/xtls/xray-core/app/proxyman/command"
@@ -45,15 +46,17 @@ var CipherTypeMap = map[string]shadowsocks.CipherType{
 
 type HandlerServiceClient struct {
 	command.HandlerServiceClient
+	Logger       *zap.Logger
 	InboundTag   string
 	VlessEnabled bool
 }
 
-func NewHandlerServiceClient(client *grpc.ClientConn, inboundTag string, vlessEnabled bool) *HandlerServiceClient {
+func NewHandlerServiceClient(client *grpc.ClientConn, logger *zap.Logger, inboundTag string, vlessEnabled bool) *HandlerServiceClient {
 	return &HandlerServiceClient{
 		HandlerServiceClient: command.NewHandlerServiceClient(client),
 		InboundTag:           inboundTag,
 		VlessEnabled:         vlessEnabled,
+		Logger:               logger,
 	}
 }
 
@@ -66,13 +69,13 @@ func (h *HandlerServiceClient) DelUser(email string) error {
 	return h.AlterInbound(req)
 }
 
-func (h *HandlerServiceClient) AddUser(user *proto.UserModel) error {
+func (h *HandlerServiceClient) AddUser(user *proto.UserModel, enableReality ...bool) error {
 	req := &command.AlterInboundRequest{
 		Tag:       h.InboundTag,
 		Operation: serial.ToTypedMessage(&command.AddUserOperation{User: h.ConvertVmessUser(user)}),
 	}
 	if h.VlessEnabled {
-		req.Operation = serial.ToTypedMessage(&command.AddUserOperation{User: h.ConvertVlessUser(user)})
+		req.Operation = serial.ToTypedMessage(&command.AddUserOperation{User: h.ConvertVlessUser(user, enableReality...)})
 	}
 
 	return h.AlterInbound(req)
@@ -150,6 +153,8 @@ func (h *HandlerServiceClient) AddVmessInbound(port uint16, address string, stre
 			}),
 		},
 	}
+
+	h.Logger.Info("add vmess inbound", zap.Any("request", addInboundRequest))
 	return h.AddInbound(addInboundRequest)
 }
 
@@ -190,6 +195,8 @@ func (h *HandlerServiceClient) AddVlessInbound(port uint16, address string, stre
 			},
 		})
 	}
+
+	h.Logger.Info("add vless inbound", zap.Any("request", addInboundRequest))
 	return h.AddInbound(addInboundRequest)
 }
 
@@ -218,12 +225,17 @@ func (h *HandlerServiceClient) ConvertVmessUser(userModel *proto.UserModel) *pro
 	}
 }
 
-func (h *HandlerServiceClient) ConvertVlessUser(userModel *proto.UserModel) *protocol.User {
+func (h *HandlerServiceClient) ConvertVlessUser(userModel *proto.UserModel, enableReality ...bool) *protocol.User {
+	flow := ""
+	if len(enableReality) > 0 && enableReality[0] {
+		flow = "xtls-rprx-vision"
+	}
 	return &protocol.User{
 		Level: 0,
 		Email: userModel.Email,
 		Account: serial.ToTypedMessage(&vless.Account{
-			Id: userModel.UUID,
+			Id:   userModel.UUID,
+			Flow: flow,
 		}),
 	}
 }

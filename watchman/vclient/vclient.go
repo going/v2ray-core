@@ -88,19 +88,19 @@ func (v *VClient) InitServices(nodeId int64, vmessInboundTag, vlessInboundTag st
 
 	if v.VmessRelayManager == nil {
 		v.Logger.Debug("start vmess relay manage service", zap.Int64("port", 5454))
-		v.VmessRelayManager = NewHandlerServiceClient(v.Conn, DefaultVmessRelayInboundTag, false)
+		v.VmessRelayManager = NewHandlerServiceClient(v.Conn, v.Logger, DefaultVmessRelayInboundTag, false)
 		v.AddVmessLocalInbound(5454)
 	}
 
 	if v.VmessManager == nil && v.VmessInboundTag != "" && nodeInfo.Port > 0 {
 		v.Logger.Debug("start vmess manage service, ", zap.Int64("port", nodeInfo.Port))
-		v.VmessManager = NewHandlerServiceClient(v.Conn, v.VmessInboundTag, false)
+		v.VmessManager = NewHandlerServiceClient(v.Conn, v.Logger, v.VmessInboundTag, false)
 		v.AddVmessInbound(uint16(nodeInfo.Port))
 	}
 
 	if v.VlessManager == nil && v.VlessInboundTag != "" && nodeInfo.VlessPort > 0 {
 		v.Logger.Debug("start vless manage service")
-		v.VlessManager = NewHandlerServiceClient(v.Conn, v.VlessInboundTag, true)
+		v.VlessManager = NewHandlerServiceClient(v.Conn, v.Logger, v.VlessInboundTag, true)
 		v.AddVlessInbound(uint16(nodeInfo.VlessPort), nodeInfo.Reality)
 	}
 
@@ -165,6 +165,7 @@ func (v *VClient) AddVlessInbound(port uint16, enableReality ...bool) error {
 		}
 		streamSetting = &internet.StreamConfig{
 			ProtocolName: "tcp",
+			SecurityType: serial.GetMessageType(&reality.Config{}),
 			SecuritySettings: []*serial.TypedMessage{
 				serial.ToTypedMessage(&reality.Config{
 					Show: false,
@@ -180,6 +181,7 @@ func (v *VClient) AddVlessInbound(port uint16, enableReality ...bool) error {
 			},
 		}
 	}
+
 	if err := v.VlessManager.AddVlessInbound(port, "0.0.0.0", streamSetting, enableReality...); err != nil {
 		return err
 	} else {
@@ -226,6 +228,12 @@ func (v *VClient) syncAccounts(nodeId int64, isVIP bool) {
 	var removedUsers []*proto.UserModel
 	accounts := v.loadAccounts(nodeId, isVIP)
 
+	nodeInfo, err := v.GetNode(nodeId)
+	if err != nil {
+		v.Logger.Error(err.Error())
+		return
+	}
+
 	newAccounts := make(map[string]*proto.UserModel)
 
 	for i := range accounts {
@@ -260,7 +268,7 @@ func (v *VClient) syncAccounts(nodeId int64, isVIP bool) {
 		}
 
 		if v.VlessManager != nil {
-			if err := v.VlessManager.AddUser(user); err != nil {
+			if err := v.VlessManager.AddUser(user, nodeInfo.Reality); err != nil {
 				v.Logger.Error(err.Error())
 			}
 			v.Logger.Info("新增Vless用户", zap.String("email", user.Email), zap.String("uuid", user.UUID))
@@ -303,7 +311,7 @@ func (v *VClient) syncAccounts(nodeId int64, isVIP bool) {
 		}
 
 		if v.VlessManager != nil {
-			if err := v.VlessManager.AddUser(user); err != nil {
+			if err := v.VlessManager.AddUser(user, nodeInfo.Reality); err != nil {
 				v.Logger.Error(err.Error())
 			}
 			v.Logger.Info("修改Vless用户", zap.String("email", user.Email), zap.String("uuid", user.UUID))
