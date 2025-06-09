@@ -2,6 +2,7 @@ package vclient
 
 import (
 	"context"
+
 	"go.uber.org/zap"
 
 	"github.com/xtls/xray-core/app/proxyman"
@@ -23,8 +24,6 @@ import (
 	"github.com/xtls/xray-core/transport/internet/headers/utp"
 	"github.com/xtls/xray-core/transport/internet/headers/wechat"
 	"github.com/xtls/xray-core/transport/internet/headers/wireguard"
-	"github.com/xtls/xray-core/transport/internet/kcp"
-	"github.com/xtls/xray-core/transport/internet/websocket"
 	"github.com/xtls/xray-core/watchman/proto"
 	"google.golang.org/grpc"
 )
@@ -87,48 +86,48 @@ func (h *HandlerServiceClient) AlterInbound(req *command.AlterInboundRequest) er
 }
 
 // streaming
-func GetKcpStreamConfig(headkey string) *internet.StreamConfig {
-	var streamsetting internet.StreamConfig
-	head, _ := KcpHeadMap["noop"]
-	if _, ok := KcpHeadMap[headkey]; ok {
-		head, _ = KcpHeadMap[headkey]
-	}
-	streamsetting = internet.StreamConfig{
-		ProtocolName: "mkcp",
-		TransportSettings: []*internet.TransportConfig{
-			{
-				ProtocolName: "mkcp",
-				Settings: serial.ToTypedMessage(
-					&kcp.Config{
-						HeaderConfig: head,
-					}),
-			},
-		},
-	}
-	return &streamsetting
-}
+// func GetKcpStreamConfig(headkey string) *internet.StreamConfig {
+// 	var streamsetting internet.StreamConfig
+// 	head, _ := KcpHeadMap["noop"]
+// 	if _, ok := KcpHeadMap[headkey]; ok {
+// 		head, _ = KcpHeadMap[headkey]
+// 	}
+// 	streamsetting = internet.StreamConfig{
+// 		ProtocolName: "mkcp",
+// 		TransportSettings: []*internet.TransportConfig{
+// 			{
+// 				ProtocolName: "mkcp",
+// 				Settings: serial.ToTypedMessage(
+// 					&kcp.Config{
+// 						HeaderConfig: head,
+// 					}),
+// 			},
+// 		},
+// 	}
+// 	return &streamsetting
+// }
 
-func GetWebSocketStreamConfig(path string, host string) *internet.StreamConfig {
-	var streamsetting internet.StreamConfig
-	streamsetting = internet.StreamConfig{
-		ProtocolName: "websocket",
-		TransportSettings: []*internet.TransportConfig{
-			{
-				ProtocolName: "websocket",
-				Settings: serial.ToTypedMessage(&websocket.Config{
-					Path: path,
-					Header: []*websocket.Header{
-						{
-							Key:   "Hosts",
-							Value: host,
-						},
-					},
-				}),
-			},
-		},
-	}
-	return &streamsetting
-}
+// func GetWebSocketStreamConfig(path string, host string) *internet.StreamConfig {
+// 	var streamsetting internet.StreamConfig
+// 	streamsetting = internet.StreamConfig{
+// 		ProtocolName: "websocket",
+// 		TransportSettings: []*internet.TransportConfig{
+// 			{
+// 				ProtocolName: "websocket",
+// 				Settings: serial.ToTypedMessage(&websocket.Config{
+// 					Path: path,
+// 					Header: []*websocket.Header{
+// 						{
+// 							Key:   "Hosts",
+// 							Value: host,
+// 						},
+// 					},
+// 				}),
+// 			},
+// 		},
+// 	}
+// 	return &streamsetting
+// }
 
 // different type inbounds
 func (h *HandlerServiceClient) AddVmessInbound(port uint16, address string, streamsetting *internet.StreamConfig) error {

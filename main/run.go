@@ -243,11 +243,11 @@ func startXray() (core.Server, error) {
 }
 
 func startWatchman() (*watchman.Server, error) {
-	configFiles := getConfigFilePath()
+	configFiles := getConfigFilePath(true)
 
 	config, err := watchman.LoadConfig(configFiles[0])
 	if err != nil {
-		return nil, newError("failed to read config files: [", configFiles.String(), "]").Base(err)
+		return nil, errors.New("failed to read config files: [", configFiles.String(), "]").Base(err)
 	}
 
 	server := watchman.New(config)
